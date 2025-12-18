@@ -25,6 +25,7 @@ import Header from '../components/Header';
 import IntlProvider from '../components/IntlProvider';
 import MissedPage from '../components/MissedPage';
 import SearchParamsConfigurator from '../components/SearchParamsConfigurator';
+import MoviesPage from 'pageProviders/Movies';
 
 function App() {
   const dispatch = useDispatch();
@@ -71,6 +72,10 @@ function App() {
                 )}
                 {!isFetchingUser && (
                   <Routes>
+                    <Route
+                        element={<MoviesPage />}
+                        path={`${pageURLs[pages.movies]}`}
+                    />
                     <Route
                       element={<DefaultPage />}
                       path={`${pageURLs[pages.defaultPage]}`}
