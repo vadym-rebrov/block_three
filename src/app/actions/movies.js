@@ -10,11 +10,13 @@ const requestMovies = () => ({ type: REQUEST_MOVIES });
 const receiveMovies = (data) => ({ type: RECEIVE_MOVIES, payload: data });
 const errorMovies = () => ({ type: ERROR_RECEIVE_MOVIES });
 
+const moviesPerPage = 18;
+
 export const fetchMovies = (filters = {}) => (dispatch) => {
     dispatch(requestMovies());
     const queryDto = {
         page: 0,
-        size: 20,
+        size: moviesPerPage,
         ...filters,
     };
 
@@ -31,7 +33,6 @@ export const fetchMovies = (filters = {}) => (dispatch) => {
 export const fetchDeleteMovie = (id) => (dispatch) => {
     return axios.delete(`${config.SERVICE}/api/movie/${id}`)
         .then(() => {
-            // Після успішного видалення оновлюємо список (або фільтруємо локально)
             dispatch(fetchMovies());
             return { success: true };
         })

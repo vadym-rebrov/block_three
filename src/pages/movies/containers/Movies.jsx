@@ -27,7 +27,7 @@ function Movies() {
     return (
         <div>
             <Typography variant="title">Список фільмів</Typography>
-            <div style={{ display: 'flex', flexDirection: 'row', gap: '15px', marginTop: '15px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ display: 'flex', height: '100%', flexDirection: 'row', gap: '15px', marginTop: '15px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
                 {moviesList.map(movie => (
                     <div style={{maxWidth:'300px',width:'100%',maxHeight:'170px', height:'100%'}}>
                         <Card key={movie.id}>
