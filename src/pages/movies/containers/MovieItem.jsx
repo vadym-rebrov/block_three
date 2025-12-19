@@ -31,7 +31,7 @@ const MovieItem = ({ movie, onDeleteClick }) => {
                 <div className={classes.itemContent}>
                     <div>
                         <Typography variant="subTitle"><strong>{movie.title}</strong></Typography>
-                        <Typography color="secondary">Рік: {movie.releaseYear} | Рейтинг: {movie.rating}</Typography>
+                        <Typography color="secondary">Рік: {movie.released} | Рейтинг: {movie.rating}</Typography>
                     </div>
                     <div className={classes.deleteBtn}>
                         <IconButton onClick={() => onDeleteClick(movie)}>
