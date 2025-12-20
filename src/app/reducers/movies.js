@@ -2,6 +2,9 @@ import {
     RECEIVE_MOVIES,
     ERROR_RECEIVE_MOVIES,
     REQUEST_MOVIES,
+    GET_MOVIE_DETAILS_REQUEST,
+    GET_MOVIE_DETAILS_SUCCESS,
+    GET_MOVIE_DETAILS_ERROR,
 } from '../constants/moviesActionTypes';
 
 const initialState = {
@@ -9,6 +12,8 @@ const initialState = {
     loading: false,
     totalPages:0,
     totalElements: 0,
+    currentMovie: null,
+    loadingDetails: false,
 }
 
 export default function Reducer(state = initialState, action) {
@@ -32,6 +37,27 @@ export default function Reducer(state = initialState, action) {
             return {
                 ...state,
                 loading: false,
+            };
+        }
+        case GET_MOVIE_DETAILS_REQUEST: {
+            return {
+                ...state,
+                loadingDetails: true,
+                currentMovie: null
+            };
+        }
+        case GET_MOVIE_DETAILS_SUCCESS: {
+            return {
+                ...state,
+                loadingDetails: false,
+                currentMovie: action.payload
+            };
+        }
+        case GET_MOVIE_DETAILS_ERROR: {
+            return {
+                ...state,
+                loadingDetails: false,
+                currentMovie: null
             };
         }
         default:

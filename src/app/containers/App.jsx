@@ -26,6 +26,7 @@ import IntlProvider from '../components/IntlProvider';
 import MissedPage from '../components/MissedPage';
 import SearchParamsConfigurator from '../components/SearchParamsConfigurator';
 import MoviesPage from 'pageProviders/Movies';
+import MovieDetails from "../../pageProviders/MovieDetails";
 
 function App() {
   const dispatch = useDispatch();
@@ -75,6 +76,10 @@ function App() {
                     <Route
                         element={<MoviesPage />}
                         path={`${pageURLs[pages.movies]}`}
+                    />
+                    <Route
+                        element={<MovieDetails />}
+                        path={pageURLs[pages.movieProfile]}
                     />
                     <Route
                       element={<DefaultPage />}

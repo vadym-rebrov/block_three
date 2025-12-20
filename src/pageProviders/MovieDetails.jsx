@@ -1,13 +1,12 @@
 import React from 'react';
-import MoviesPage from 'pages/moviesCatalog';
 import PageContainer from './components/PageContainer';
+import MovieDetails from "../pages/movieDetails";
 
-const Movies = (props) => {
+const Movie = (props) => {
     return (
         <PageContainer>
-            <MoviesPage {...props} />
+            <MovieDetails {...props} />
         </PageContainer>
     );
 };
-
-export default Movies;
+export default Movie;
