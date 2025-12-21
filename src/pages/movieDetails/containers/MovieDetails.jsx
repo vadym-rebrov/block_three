@@ -3,12 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUseStyles } from 'react-jss';
 
-// Actions
 import actionsMovies from 'app/actions/movies';
 import actionsDirectors from 'app/actions/director';
 import actionsGenres from 'app/actions/genre';
 
-// Components
 import Typography from 'components/Typography';
 import Loading from 'components/Loading';
 import Button from 'components/Button';
@@ -101,8 +99,8 @@ function MovieDetails() {
 
     // --- Redux State ---
     const { currentMovie, loadingDetails } = useSelector(({ movies }) => movies);
-    const { list: directorsList } = useSelector(({ directors }) => directors);
-    const { list: genresList } = useSelector(({ genres }) => genres);
+    const { list: directorsList } = useSelector(({ director }) => director);
+    const { list: genresList } = useSelector(({ genre }) => genre);
 
     // --- Local State ---
     const [isEditMode, setIsEditMode] = useState(false);
@@ -114,10 +112,9 @@ function MovieDetails() {
         released: '',
         rating: '',
         directorId: null,
-        directorName: '', // Для відображення в інпуті
-        country: '',
-        selectedGenres: [], // Массив об'єктів {id, name}
-        awards: [] // Масив строк
+        directorName: '',
+        selectedGenres: [],
+        awards: []
     });
 
     const [directorSearch, setDirectorSearch] = useState('');
@@ -126,13 +123,9 @@ function MovieDetails() {
     const [directorAnchor, setDirectorAnchor] = useState(null);
     const [genreAnchor, setGenreAnchor] = useState(null);
 
-    // Ref для input
     const directorInputRef = useRef(null);
     const genreInputRef = useRef(null);
 
-    // --- Effects ---
-
-    // 1. Завантаження фільму
     useEffect(() => {
         if (id) {
             dispatch(actionsMovies.fetchMovieById(id));
@@ -158,7 +151,7 @@ function MovieDetails() {
         }
     }, [currentMovie]);
 
-    // 3. Пошук Режисерів (Debounce)
+    // 3. Пошук Режисерів
     useEffect(() => {
         if (isEditMode) {
             const timer = setTimeout(() => {
@@ -168,7 +161,7 @@ function MovieDetails() {
         }
     }, [dispatch, directorSearch, isEditMode]);
 
-    // 4. Пошук Жанрів (Debounce)
+    // 4. Пошук Жанрів
     useEffect(() => {
         if (isEditMode) {
             const timer = setTimeout(() => {
@@ -189,8 +182,8 @@ function MovieDetails() {
     const handleDirectorChange = (e) => {
         const value = e.target.value;
         setDirectorSearch(value);
-        setFormData(prev => ({ ...prev, directorName: value })); // Просто текст, поки не вибрали
-        setDirectorAnchor(directorInputRef.current); // Відкриваємо меню
+        setFormData(prev => ({ ...prev, directorName: value }));
+        setDirectorAnchor(directorInputRef.current);
     };
 
     const selectDirector = (director) => {
@@ -210,7 +203,6 @@ function MovieDetails() {
     };
 
     const addGenre = (genre) => {
-        // Перевіряємо, чи жанр вже доданий
         const exists = formData.selectedGenres.find(g => g.id === genre.id);
         if (!exists) {
             setFormData(prev => ({
@@ -218,8 +210,8 @@ function MovieDetails() {
                 selectedGenres: [...prev.selectedGenres, genre]
             }));
         }
-        setGenreSearch(''); // Очистити поле
-        setGenreAnchor(null); // Закрити меню
+        setGenreSearch('');
+        setGenreAnchor(null);
     };
 
     const removeGenre = (genreId) => {
@@ -258,12 +250,8 @@ function MovieDetails() {
     const handleCancel = () => {
         setIsEditMode(false);
         setMessage(null);
-        // Скидання відбувається через useEffect(currentMovie), який спрацює при зміні isEditMode?
-        // Ні, краще вручну або перезавантажити стейт.
         if(currentMovie) {
             setDirectorSearch(currentMovie.director?.name || '');
-            // Інші поля скинуться при ререндері, бо вони залежать від currentMovie в useEffect,
-            // але щоб спрацювало точно:
             dispatch(actionsMovies.fetchMovieById(id));
         }
     };
@@ -306,7 +294,7 @@ function MovieDetails() {
                     <div className={classes.detailsRow}>
                         <div className={classes.label}><Typography variant="subTitle">Рік випуску</Typography></div>
                         {isEditMode ? (
-                            <TextField inputType="number" value={formData.released} onChange={e => handleInputChange('released', e.target.value)} />
+                            <TextField inputType="date" value={formData.released} onChange={e => handleInputChange('released', e.target.value)} />
                         ) : (
                             <Typography>{currentMovie.released}</Typography>
                         )}
@@ -340,7 +328,7 @@ function MovieDetails() {
                                 >
                                     {directorsList.map(director => (
                                         <MenuItem key={director.id} onClick={() => selectDirector(director)}>
-                                            {director.name}
+                                            {director.fullName}
                                         </MenuItem>
                                     ))}
                                     {directorsList.length === 0 && (
@@ -349,19 +337,10 @@ function MovieDetails() {
                                 </Menu>
                             </div>
                         ) : (
-                            <Typography>{currentMovie.directorFullName || currentMovie.director?.name}</Typography>
+                            <Typography>{currentMovie.director.fullName || currentMovie.director?.name}</Typography>
                         )}
                     </div>
 
-                    {/* Country */}
-                    <div className={classes.detailsRow}>
-                        <div className={classes.label}><Typography variant="subTitle">Країна</Typography></div>
-                        {isEditMode ? (
-                            <TextField value={formData.country} onChange={e => handleInputChange('country', e.target.value)} />
-                        ) : (
-                            <Typography>{currentMovie.country}</Typography>
-                        )}
-                    </div>
 
                     {/* --- Genres Search & Add --- */}
                     <div className={classes.detailsRow}>
