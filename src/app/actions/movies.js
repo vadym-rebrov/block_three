@@ -7,6 +7,9 @@ import {
     GET_MOVIE_DETAILS_REQUEST,
     GET_MOVIE_DETAILS_SUCCESS,
     GET_MOVIE_DETAILS_ERROR,
+    UPDATE_MOVIE_REQUEST,
+    UPDATE_MOVIE_SUCCESS,
+    UPDATE_MOVIE_ERROR,
 } from '../constants/moviesActionTypes';
 
 const requestMovies = () => ({ type: REQUEST_MOVIES });
@@ -40,7 +43,6 @@ export const fetchDeleteMovie = (id) => (dispatch) => {
             return { success: true };
         })
         .catch((error) => {
-            // Повертаємо помилку для відображення в діалозі
             throw error;
         });
 };
@@ -48,7 +50,6 @@ export const fetchDeleteMovie = (id) => (dispatch) => {
 export const fetchMovieById = (id) => (dispatch) => {
     dispatch({ type: GET_MOVIE_DETAILS_REQUEST });
 
-    // Предполагаем, что бэкенд отдает данные по GET /api/movie/{id}
     return axios.get(`${config.SERVICE}/api/movie/${id}`)
         .then((data) => {
             dispatch({ type: GET_MOVIE_DETAILS_SUCCESS, payload: data });
@@ -58,10 +59,24 @@ export const fetchMovieById = (id) => (dispatch) => {
         });
 };
 
+export const fetchUpdateMovie = (id, data) => (dispatch) => {
+    dispatch({ type: UPDATE_MOVIE_REQUEST });
+    return axios.put(`${config.SERVICE}/api/movie/${id}`, data)
+        .then((response) => {
+            dispatch({ type: UPDATE_MOVIE_SUCCESS, payload: response });
+            return response;
+        })
+        .catch((error) => {
+            dispatch({ type: UPDATE_MOVIE_ERROR });
+            throw error;
+        });
+};
+
 const exportFunctions = {
     fetchMovies,
     fetchDeleteMovie,
-    fetchMovieById
+    fetchMovieById,
+    fetchUpdateMovie
 };
 
 export default exportFunctions;
