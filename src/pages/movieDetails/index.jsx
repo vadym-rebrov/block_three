@@ -1,6 +1,5 @@
 import React from 'react';
-import MovieContainer from './containers/Movie';
-
+import MovieContainer from './containers/MovieDetails';
 function MovieDetails(props) {
     return (
         <MovieContainer {...props} />

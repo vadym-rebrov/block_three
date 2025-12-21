@@ -49,7 +49,7 @@ export const fetchMovieById = (id) => (dispatch) => {
     dispatch({ type: GET_MOVIE_DETAILS_REQUEST });
 
     // Предполагаем, что бэкенд отдает данные по GET /api/movie/{id}
-    return axios.get(`${config.USERS_SERVICE}/api/movie/${id}`)
+    return axios.get(`${config.SERVICE}/api/movie/${id}`)
         .then((data) => {
             dispatch({ type: GET_MOVIE_DETAILS_SUCCESS, payload: data });
         })

@@ -73,12 +73,7 @@ function Movie() {
 
                     <div className={classes.detailsRow}>
                         <Typography variant="subTitle">Режисер:</Typography>
-                        <Typography>{currentMovie.directorFullName}</Typography>
-                    </div>
-
-                    <div className={classes.detailsRow}>
-                        <Typography variant="subTitle">Країна:</Typography>
-                        <Typography>{currentMovie.country}</Typography>
+                        <Typography>{currentMovie.director.fullName}</Typography>
                     </div>
 
                     <div className={classes.detailsRow}>
@@ -88,7 +83,11 @@ function Movie() {
 
                     <div className={classes.detailsRow}>
                         <Typography variant="subTitle">Жанри:</Typography>
-                        <Typography>{Array.isArray(currentMovie.genres) ? currentMovie.genres.join(', ') : ''}</Typography>
+                        <Typography>{currentMovie.genres.map((genre)=>{return genre.name}).join(', ')}</Typography>
+                    </div>
+                    <div className={classes.detailsRow}>
+                        <Typography variant="subTitle">Нагороди:</Typography>
+                        <Typography>{currentMovie.awards.join(', ')}</Typography>
                     </div>
                 </CardContent>
             </Card>
