@@ -1,371 +1,212 @@
-
-import Typography from 'components/Typography';
-import React, {use, useEffect, useState} from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { createUseStyles } from "react-jss";
+import { useSearchParams } from 'react-router-dom';
+
 import actionsMovies from 'app/actions/movies';
+import Typography from 'components/Typography';
 import Loading from 'components/Loading';
-
-import Card from 'components/Card';
-import CardTitle from 'components/CardTitle';
-import CardContent from 'components/CardContent';
-import IconDelete from 'components/icons/Delete';
+import Button from 'components/Button';
 import IconFilter from 'components/icons/Filter';
+import Link from "components/Link";
 
-import Button from 'components/Button'
-import {createUseStyles} from "react-jss";
-import IconButton from "../../../components/IconButton";
-import Dialog from "../../../components/Dialog";
-import Menu from "../../../components/Menu";
-import TextField from "../../../components/TextField";
-import Link from "../../../components/Link";
-
-const STORAGE_KEY = 'movies_page_state_v1';
+import MovieCard from '../components/MovieCard';
+import MoviesFilter from '../components/MoviesFilter';
+import Pagination from '../components/Pagination';
+import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
+import {useIntl} from "react-intl";
 
 const useStyles = createUseStyles((theme) => ({
-    cardWrapper:{
-        maxWidth:'300px',
-        width:'100%',
-        maxHeight:'170px',
-        position:'relative',
-        height:'100%',
-        '&:hover $deleteBtn': {
-            opacity: 1,
-            visibility: 'visible',
-        },
-    },
-
-    deleteBtn: {
-        position: 'absolute',
-        top: -10,
-        right: -10,
-        borderRadius: '50%',
-        opacity: 0,
-        background:'#888',
-        visibility: 'hidden',
-        transition: 'all 0.2s ease-in-out',
-        zIndex: 10,
-        '&:hover': {
-            transform: 'scale(1.1)',
-        }
-    },
-
-    btnDelete:{
-        background:'#d90000',
-    },
-
-    moviePageLink:{
-        textDecoration:"none",
-    },
-
     headerContainer: {
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
+        gap:'10px',
         alignItems: 'center',
-        marginBottom: '15px',
+        marginBottom: '40px',
         padding: '0 20px',
     },
-
-    filterMenuContent: {
-        padding: '16px',
+    listContainer: {
         display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        minWidth: '280px',
-        outline: 'none',
-    },
-    filterRow: {
-        display: 'flex',
-        gap: '10px',
+        height: '100%',
+        flexDirection: 'row',
+        gap: '15px',
+        marginTop: '15px',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'center'
     }
-
-
 }));
 
-const getSavedState = () => {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        return saved ? JSON.parse(saved) : null;
-    } catch (e) {
-        console.error("Error parsing local storage", e);
-        return null;
-    }
-};
+
 
 function Movies() {
     const classes = useStyles();
     const dispatch = useDispatch();
+    const { formatMessage } = useIntl();
 
-    const savedState = getSavedState();
 
-    const defaultFilters = {
-        country: '',
-        directorName: '',
-        minRating: '',
-        maxRating: '',
-        minYear: '',
-        maxYear: '',
-    };
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    const [currentPage, setCurrentPage] = useState(savedState?.page || 0);
+    const queryParams = useMemo(() => {
+        return {
+            page: parseInt(searchParams.get('page') || '0', 10),
+            directorName: searchParams.get('directorName') || '',
+            minRating: searchParams.get('minRating') || '',
+            maxRating: searchParams.get('maxRating') || '',
+        };
+    }, [searchParams]);
 
-    const [appliedFilters, setAppliedFilters] = useState({
-        ...defaultFilters,
-        ...(savedState?.filters || {})
-    });
 
-    const [localFilters, setLocalFilters] = useState({
-        ...defaultFilters,
-        ...(savedState?.filters || {})
-    });
+    const [localFilters, setLocalFilters] = useState(queryParams);
 
     const [movieToDelete, setMovieToDelete] = useState(null);
+    const [deleteError, setDeleteError] = useState(null);
     const [filterAnchorEl, setFilterAnchorEl] = useState(null);
 
     const { loading, moviesList, totalPages } = useSelector(({ movies }) => movies);
 
     useEffect(() => {
-        const stateToSave = {
-            page: currentPage,
-            filters: appliedFilters
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-    }, [currentPage, appliedFilters]);
+        setLocalFilters(prev => ({
+            ...prev,
+            directorName: queryParams.directorName,
+            minRating: queryParams.minRating,
+            maxRating: queryParams.maxRating,
+        }));
+    }, [queryParams]);
 
     useEffect(() => {
-        const isChanged = JSON.stringify(localFilters) !== JSON.stringify(appliedFilters);
+        const isFilterChanged =
+            localFilters.directorName !== queryParams.directorName ||
+            localFilters.minRating !== queryParams.minRating ||
+            localFilters.maxRating !== queryParams.maxRating;
 
-        if (isChanged) {
+        if (isFilterChanged) {
             const timer = setTimeout(() => {
-                setAppliedFilters(localFilters);
-                setCurrentPage(0); // При смене фильтра - всегда на первую страницу
+                updateURL({ ...localFilters, page: 0 });
             }, 1000);
             return () => clearTimeout(timer);
         }
-    }, [localFilters, appliedFilters]);
+    }, [localFilters, queryParams]);
 
     useEffect(() => {
-        // Чистим пустые фильтры перед отправкой
-        const filtersToSend = Object.fromEntries(
-            Object.entries(appliedFilters).filter(([_, v]) => v !== '')
-        );
+        const filtersToSend = {
+            directorName: queryParams.directorName,
+            minRating: queryParams.minRating,
+            maxRating: queryParams.maxRating,
+        };
+
+        Object.keys(filtersToSend).forEach(key => {
+            if (filtersToSend[key] === ''){
+                delete filtersToSend[key];
+            }
+        });
 
         dispatch(actionsMovies.fetchMovies({
-            page: currentPage,
+            page: queryParams.page,
             size: 10,
             ...filtersToSend
         }));
-    }, [dispatch, currentPage, appliedFilters]);
+    }, [dispatch, queryParams]);
 
+    const updateURL = (newParams) => {
+        const nextParams = {};
+        const allKeys = new Set([...Object.keys(queryParams), ...Object.keys(newParams)]);
+
+        allKeys.forEach(key => {
+            const value = newParams.hasOwnProperty(key) ? newParams[key] : queryParams[key];
+            if (value !== '' && value !== null && value !== undefined) {
+                nextParams[key] = value;
+            }
+        });
+
+        setSearchParams(nextParams);
+    };
 
     const handleFilterChange = (field, value) => {
-        setLocalFilters(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        setLocalFilters(prev => ({ ...prev, [field]: value }));
     };
 
     const handleClearFilters = () => {
-        setLocalFilters(defaultFilters);
-        setAppliedFilters(defaultFilters);
-        setCurrentPage(0);
+        const emptyFilters = {
+            directorName: '',
+            minRating: '',
+            maxRating: '',
+        };
+        setLocalFilters(prev => ({ ...prev, ...emptyFilters }));
+        updateURL({ ...emptyFilters, page: 0 });
+    };
+
+    const handlePageChange = (newPage) => {
+        updateURL({ page: newPage });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleConfirmDelete = () => {
         if (movieToDelete) {
+            setDeleteError(null);
             dispatch(actionsMovies.fetchDeleteMovie(movieToDelete.id))
-                .then(() => setMovieToDelete(null));
+                .then(() => {
+                    setMovieToDelete(null);
+                    setDeleteError(null);
+                })
+                .catch((error) => {
+                    console.error("Delete error:", error);
+                    const message = error?.response?.data?.message || error?.message || formatMessage({ id: 'errorDefault' });
+                    setDeleteError(message);
+                });
         }
     };
 
-    const startPage = Math.max(0, currentPage - 2);
-    const endPage = Math.min(totalPages - 1, currentPage + 3);
-    const pages = [];
-    for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-    }
-    const isFirstPageHidden = startPage > 0;
-    const isLastPageHidden = endPage < totalPages - 1;
+    const handleCloseDialog = () => {
+        setMovieToDelete(null);
+        setDeleteError(null);
+    };
 
     return (
         <div>
-
-
-
-
             <div className={classes.headerContainer}>
-                <Typography variant="title">Список фільмів</Typography>
+                <Typography variant="title">{formatMessage({ id: 'pageTitle' })}</Typography>
                 <Link href={"/movies/add"}>
-                    <Button>
-                        Додати фільм
-                    </Button>
+                    <Button>{formatMessage({ id: 'btnAdd' })}</Button>
                 </Link>
-
-                <Button
-                    onClick={(e) => setFilterAnchorEl(e.currentTarget)}
-                >
-                    Фільтр <IconFilter color="#fff" size={24} />
+                <Button onClick={(e) => setFilterAnchorEl(e.currentTarget)}>
+                    {formatMessage({ id: 'btnFilter' })} <IconFilter color="#fff" size={24} />
                 </Button>
             </div>
 
-            <Menu
+            <MoviesFilter
                 anchorEl={filterAnchorEl}
-                open={!!filterAnchorEl}
                 onClose={() => setFilterAnchorEl(null)}
-            >
-                <div className={classes.filterMenuContent}>
-                    <Typography variant="subTitle">Фільтр</Typography>
-
-                    <TextField
-                        label="Режисер"
-                        value={localFilters.directorName || ''}
-                        onChange={(e) => handleFilterChange('directorName', e.target.value)}
-                    />
-
-                    <div className={classes.filterRow}>
-                        <TextField
-                            label="Мін. рейтинг"
-                            inputType="number"
-                            value={localFilters.minRating || ''}
-                            onChange={(e) => handleFilterChange('minRating', e.target.value)}
-                        />
-                        <TextField
-                            label="Макс. рейтинг"
-                            inputType="number"
-                            value={localFilters.maxRating || ''}
-                            onChange={(e) => handleFilterChange('maxRating', e.target.value)}
-                        />
-                    </div>
-
-                    <Button
-                        variant="text"
-                        onClick={handleClearFilters}
-                    >
-                        Очистити фільтр
-                    </Button>
-                </div>
-            </Menu>
+                values={localFilters}
+                onChange={handleFilterChange}
+                onClear={handleClearFilters}
+            />
 
             {loading && <div style={{display:'flex', justifyContent:'center'}}><Loading variant="loading" /></div>}
 
-            <div style={{ display: 'flex', height: '100%', flexDirection: 'row', gap: '15px', marginTop: '15px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+            <div className={classes.listContainer}>
                 {moviesList.map(movie => (
-                    <div className={classes.cardWrapper}>
-                        <a href={'./movies/' + movie.id} className={classes.moviePageLink}>
-                            <Card key={movie.id}>
-                                <CardTitle>
-                                    <Typography variant="subTitle">
-                                        <strong>{movie.title}</strong>
-                                    </Typography>
-                                </CardTitle>
-
-                                <CardContent>
-                                    <Typography color="secondary">Рік: {movie.released}</Typography>
-                                    <Typography color="secondary">Рейтинг: {movie.rating}</Typography>
-                                    <Typography color="secondary">Режисер: {movie.directorFullName}</Typography>
-                                    <Typography color="secondary">Жанри: {movie.genres.join(', ')}</Typography>
-                                </CardContent>
-
-                            </Card>
-                        </a>
-                        <div className={classes.deleteBtn}>
-                            <IconButton
-                                onClick={() => setMovieToDelete(movie)}
-                            >
-                                <IconDelete color="error" size={24} />
-                            </IconButton>
-                        </div>
-                    </div>
-
+                    <MovieCard
+                        key={movie.id}
+                        movie={movie}
+                        onDelete={setMovieToDelete}
+                    />
                 ))}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '24px', paddingBottom: '24px',position:'relative' }}>
-                <Button
-                    disabled={currentPage === 0}
-                    onClick={() => setCurrentPage(prev => prev - 1)}
-                    variant="text"
-                >
-                    {"<"}
-                </Button>
 
-                {isFirstPageHidden && (
-                    <>
-                        <Button
-                            variant="secondary"
-                            onClick={() => setCurrentPage(0)}
-                            style={{ minWidth: '40px' }}
-                        >
-                            <Typography>1</Typography>
-                        </Button>
-                        {startPage > 1 && <Typography>...</Typography>}
-                    </>
-                )}
+            <Pagination
+                currentPage={queryParams.page}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+            />
 
-                {pages.map((pageIndex) => (
-                    <Button
-                        key={pageIndex}
-                        variant={currentPage === pageIndex ? "primary" : "secondary"}
-                        colorVariant={currentPage === pageIndex ? "primary" : "secondary"}
-                        onClick={() => setCurrentPage(pageIndex)}
-                        style={{ minWidth: '40px' }}
-                    >
-                        <Typography color={currentPage === pageIndex ? "inherit" : "primary"}>
-                            {pageIndex + 1}
-                        </Typography>
-                    </Button>
-                ))}
-
-                {isLastPageHidden && (
-                    <>
-                        {endPage < totalPages - 2 && <Typography>...</Typography>}
-                        <Button
-                            variant="secondary"
-                            onClick={() => setCurrentPage(totalPages - 1)}
-                            style={{ minWidth: '40px' }}
-                        >
-                            <Typography>{totalPages}</Typography>
-                        </Button>
-                    </>
-                )}
-
-                <Button
-                    disabled={currentPage >= totalPages - 1}
-                    onClick={() => setCurrentPage(prev => prev + 1)}
-                    variant="text"
-                >
-                    {">"}
-                </Button>
-            </div>
-            <Dialog
+            <DeleteConfirmationDialog
                 open={!!movieToDelete}
-                onClose={() => setMovieToDelete(null)}
-            >
-                <Card>
-                    <CardTitle>
-                        <Typography variant="title">Видалення фільму</Typography>
-                    </CardTitle>
-                    <CardContent>
-                        <Typography>
-                            Ви впевнені, що хочете видалити фільм <strong>"{movieToDelete?.title}"</strong>?
-                        </Typography>
-
-                        <div className={classes.dialogButtons}>
-                            <Button
-                                variant="secondary"
-                                onClick={() => setMovieToDelete(null)}
-                            >
-                                Скасувати
-                            </Button>
-                            <Button
-                                className ={classes.btnDelete}
-                                variant="primary"
-                                onClick={handleConfirmDelete}
-                            >
-                                Видалити
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </Dialog>
+                movieTitle={movieToDelete?.title}
+                onClose={handleCloseDialog}
+                onConfirm={handleConfirmDelete}
+                error={deleteError}
+            />
         </div>
     );
 }

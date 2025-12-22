@@ -1,1 +1,19 @@
-{ "title": "Список фільмів" }
+{
+  "pageTitle": "Каталог фільмів",
+  "btnAdd": "Додати фільм",
+  "btnFilter": "Фільтр",
+  "filterTitle": "Фільтр",
+  "filterDirector": "Режисер",
+  "filterMinRating": "Мін. рейтинг",
+  "filterMaxRating": "Макс. рейтинг",
+  "filterClear": "Очистити фільтр",
+  "cardYear": "Рік:",
+  "cardRating": "Рейтинг:",
+  "cardDirector": "Режисер:",
+  "cardGenres": "Жанри:",
+  "deleteTitle": "Видалення фільму",
+  "deleteConfirm": "Ви впевнені, що хочете видалити фільм",
+  "btnCancel": "Скасувати",
+  "btnDelete": "Видалити",
+  "errorDelete": "Не вдалося видалити фільм."
+}

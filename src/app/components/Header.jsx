@@ -144,6 +144,11 @@ function Header({
               </div>
             </Hover>
           </Link>
+          <Link to={{
+            pathname: `${pagesURLs[pages.movies]}`,
+          }}>
+            <Typography variant="title" color={'#c500dd'}><b>Movies</b></Typography>
+          </Link>
         </div>
         <div className={classes.toolBarContainerRight}>
           {actualOrderedRightPanelItemTypes.map((itemType) => (
