@@ -7,6 +7,7 @@ const result = {
   [pages.secretPage]: `${config.UI_URL_PREFIX}/${pages.secretPage}`,
   [pages.movies]: `${config.UI_URL_PREFIX}/${pages.movies}`,
   [pages.movieProfile]: `${config.UI_URL_PREFIX}/movies/:id`,
+  [pages.addMovie]: `${config.UI_URL_PREFIX}/'add'}`,
 };
 
 export default result;

@@ -17,6 +17,7 @@ import IconButton from "../../../components/IconButton";
 import Dialog from "../../../components/Dialog";
 import Menu from "../../../components/Menu";
 import TextField from "../../../components/TextField";
+import Link from "../../../components/Link";
 
 const STORAGE_KEY = 'movies_page_state_v1';
 
@@ -193,9 +194,12 @@ function Movies() {
 
             <div className={classes.headerContainer}>
                 <Typography variant="title">Список фільмів</Typography>
-                <Button>
-                    Додати фільм
-                </Button>
+                <Link href={"./movies/add"}>
+                    <Button>
+                        Додати фільм
+                    </Button>
+                </Link>
+
                 <IconButton
                     onClick={(e) => setFilterAnchorEl(e.currentTarget)}
                 >

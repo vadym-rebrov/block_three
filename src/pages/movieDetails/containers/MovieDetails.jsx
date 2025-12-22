@@ -97,6 +97,8 @@ function MovieDetails() {
     const navigate = useNavigate();
     const { id } = useParams();
 
+    const isCreating = !id;
+
     // --- Redux State ---
     const { currentMovie, loadingDetails } = useSelector(({ movies }) => movies);
     const { list: directorsList = [] } = useSelector(({ director }) => {
@@ -106,7 +108,7 @@ function MovieDetails() {
     const { list: genresList = [] } = useSelector(({ genre }) => genre || {});
 
     // --- Local State ---
-    const [isEditMode, setIsEditMode] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(isCreating);
     const [message, setMessage] = useState(null);
 
     // Форма даних
@@ -130,14 +132,14 @@ function MovieDetails() {
     const genreInputRef = useRef(null);
 
     useEffect(() => {
-        if (id) {
+        if (id && !isCreating) {
             dispatch(actionsMovies.fetchMovieById(id));
         }
-    }, [dispatch, id]);
+    }, [dispatch, id, isCreating]);
 
     // 2. Ініціалізація форми даними фільму
     useEffect(() => {
-        if (currentMovie) {
+        if (id && currentMovie && !isCreating) {
             setFormData({
                 title: currentMovie.title || '',
                 released: currentMovie.released || '',
@@ -151,7 +153,7 @@ function MovieDetails() {
             });
             setDirectorSearch(currentMovie.director?.name || currentMovie.director.fullName || '');
         }
-    }, [currentMovie]);
+    }, [currentMovie, id, isCreating]);
 
     // 3. Пошук Режисерів
     useEffect(() => {
@@ -278,8 +280,9 @@ function MovieDetails() {
         }
     };
 
-    if (loadingDetails) return <Loading />;
-    if (!currentMovie) return <Typography>Фільм не знайдено</Typography>;
+    if (loadingDetails && !isCreating) return <Loading />;
+
+    if (!id && !isCreating && !currentMovie) return <Typography>Фільм не знайдено</Typography>;
 
     return (
         <div className={classes.container}>
@@ -308,7 +311,8 @@ function MovieDetails() {
                         {isEditMode ? (
                             <TextField value={formData.title} onChange={e => handleInputChange('title', e.target.value)} />
                         ) : (
-                            <Typography>{currentMovie.title}</Typography>
+
+                            <Typography>{currentMovie?.title}</Typography>
                         )}
                     </div>
 
