@@ -15,9 +15,9 @@ export const fetchGenres = (searchName = '') => (dispatch) => {
     .then((response) => {
         dispatch({
             type: RECEIVE_GENRES,
-            payload: response.data
+            payload: response
         });
-        return response.data;
+        return response;
     })
     .catch((error) => {
         console.error('Error fetching genres:', error);

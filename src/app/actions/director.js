@@ -13,11 +13,12 @@ export const fetchDirectors = (searchName = '') => (dispatch) => {
         name: searchName
     })
         .then((response) => {
+            console.log('ACTION: Data received from API:', response);
             dispatch({
                 type: RECEIVE_DIRECTORS,
-                payload: response.data
+                payload: response
             });
-            return response.data;
+            return response;
         })
         .catch((error) => {
             console.error('Error fetching directors:', error);

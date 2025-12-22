@@ -99,8 +99,11 @@ function MovieDetails() {
 
     // --- Redux State ---
     const { currentMovie, loadingDetails } = useSelector(({ movies }) => movies);
-    const { list: directorsList } = useSelector(({ director }) => director);
-    const { list: genresList } = useSelector(({ genre }) => genre);
+    const { list: directorsList = [] } = useSelector(({ director }) => {
+        console.log('SELECTOR: Full Director State:', director); // <--- LOG 4
+        return director || {};
+    });
+    const { list: genresList = [] } = useSelector(({ genre }) => genre || {});
 
     // --- Local State ---
     const [isEditMode, setIsEditMode] = useState(false);
@@ -140,14 +143,13 @@ function MovieDetails() {
                 released: currentMovie.released || '',
                 rating: currentMovie.rating || '',
                 directorId: currentMovie.director?.id || null,
-                directorName: currentMovie.director?.name || currentMovie.directorFullName || '',
-                country: currentMovie.country || '',
+                directorName: currentMovie.director?.name || currentMovie.director?.fullName || '',
                 selectedGenres: Array.isArray(currentMovie.genres)
-                    ? currentMovie.genres.map(g => (typeof g === 'object' ? g : { name: g }))
+                    ? currentMovie.genres
                     : [],
                 awards: currentMovie.awards || []
             });
-            setDirectorSearch(currentMovie.director?.name || currentMovie.directorFullName || '');
+            setDirectorSearch(currentMovie.director?.name || currentMovie.director.fullName || '');
         }
     }, [currentMovie]);
 
@@ -190,10 +192,10 @@ function MovieDetails() {
         setFormData(prev => ({
             ...prev,
             directorId: director.id,
-            directorName: director.name
+            directorName: director.fullName
         }));
-        setDirectorSearch(director.name);
-        setDirectorAnchor(null); // Закриваємо меню
+        setDirectorSearch(director.fullName);
+        setDirectorAnchor(null);
     };
 
     // -- Genre Logic --
@@ -221,6 +223,26 @@ function MovieDetails() {
         }));
     };
 
+    // -- Awards Logic --
+
+    // Зміна тексту конкретної нагороди
+    const handleAwardChange = (index, value) => {
+        const newAwards = [...formData.awards];
+        newAwards[index] = value;
+        setFormData(prev => ({ ...prev, awards: newAwards }));
+    };
+
+    // Додавання нового порожнього поля
+    const handleAddAward = () => {
+        setFormData(prev => ({ ...prev, awards: [...prev.awards, ''] }));
+    };
+
+    // Видалення нагороди
+    const handleRemoveAward = (index) => {
+        const newAwards = formData.awards.filter((_, i) => i !== index);
+        setFormData(prev => ({ ...prev, awards: newAwards }));
+    };
+
     // -- Save Logic --
     const handleSave = () => {
         const dataToSend = {
@@ -231,7 +253,7 @@ function MovieDetails() {
             country: formData.country,
             directorId: formData.directorId,
             genresId: formData.selectedGenres.map(g => g.id),
-            awards: formData.awards
+            awards: formData.awards.filter(a => a.trim() !== '')
         };
 
         dispatch(actionsMovies.fetchUpdateMovie(id, dataToSend))
@@ -320,6 +342,7 @@ function MovieDetails() {
                                     onChange={handleDirectorChange}
                                     placeholder="Почніть вводити ім'я..."
                                 />
+                                {!directorsList.length && console.log(directorsList)}
                                 <Menu
                                     anchorEl={directorAnchor}
                                     open={!!directorAnchor && directorsList.length > 0}
@@ -337,7 +360,7 @@ function MovieDetails() {
                                 </Menu>
                             </div>
                         ) : (
-                            <Typography>{currentMovie.director.fullName || currentMovie.director?.name}</Typography>
+                            <Typography>{currentMovie.director.fullName || currentMovie.director?.fullName}</Typography>
                         )}
                     </div>
 
@@ -390,9 +413,29 @@ function MovieDetails() {
                     {/* Awards */}
                     <div className={classes.detailsRow}>
                         <div className={classes.label}><Typography variant="subTitle">Нагороди</Typography></div>
-                        <Typography>
-                            {Array.isArray(currentMovie.awards) ? currentMovie.awards.join(', ') : ''}
-                        </Typography>
+                        {isEditMode ? (
+                            <div>
+                                {formData.awards.map((award, index) => (
+                                    <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '8px', alignItems: 'center' }}>
+                                        <TextField
+                                            value={award}
+                                            onChange={e => handleAwardChange(index, e.target.value)}
+                                            placeholder="Введіть назву нагороди"
+                                        />
+                                        <IconButton onClick={() => handleRemoveAward(index)}>
+                                            <IconClose size={20} />
+                                        </IconButton>
+                                    </div>
+                                ))}
+                                <Button variant="secondary" onClick={handleAddAward}>
+                                    + Додати нагороду
+                                </Button>
+                            </div>
+                        ) : (
+                            <Typography>
+                                {Array.isArray(currentMovie.awards) ? currentMovie.awards.join(', ') : ''}
+                            </Typography>
+                        )}
                     </div>
 
                     {/* Actions */}

@@ -10,6 +10,7 @@ const initialState = {
 };
 
 export default function directorsReducer(state = initialState, action) {
+    console.log('REDUCER: Action type:', action.type);
     switch (action.type) {
         case REQUEST_DIRECTORS:
             return { ...state, loading: true };
