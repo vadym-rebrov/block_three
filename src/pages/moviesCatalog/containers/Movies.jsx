@@ -250,7 +250,7 @@ function Movies() {
             <div style={{ display: 'flex', height: '100%', flexDirection: 'row', gap: '15px', marginTop: '15px', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
                 {moviesList.map(movie => (
                     <div className={classes.cardWrapper}>
-                        <a href={'./' + movie.id} className={classes.moviePageLink}>
+                        <a href={'./movies/' + movie.id} className={classes.moviePageLink}>
                             <Card key={movie.id}>
                                 <CardTitle>
                                     <Typography variant="subTitle">

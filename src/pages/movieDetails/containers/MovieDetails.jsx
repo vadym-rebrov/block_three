@@ -118,12 +118,10 @@ function MovieDetails({ isCreateMode = false }) {
     const [message, setMessage] = useState(null);
     const [errors, setErrors] = useState({}); // Для валідації
 
-    // Форма даних
     const [formData, setFormData] = useState({
         title: '',
         released: '',
         rating: '',
-        country: '',
         directorId: null,
         directorName: '',
         selectedGenres: [],
@@ -146,7 +144,6 @@ function MovieDetails({ isCreateMode = false }) {
                 title: currentMovie.title || '',
                 released: currentMovie.released || '',
                 rating: currentMovie.rating || '',
-                country: currentMovie.country || '',
                 directorId: currentMovie.director?.id || null,
                 directorName: currentMovie.director?.name || currentMovie.director?.fullName || '',
                 selectedGenres: Array.isArray(currentMovie.genres) ? currentMovie.genres : [],
@@ -186,57 +183,58 @@ function MovieDetails({ isCreateMode = false }) {
 
     // 3. Пошук Режисерів
     useEffect(() => {
-        if (isEditMode) {
+        if (isEditMode && directorSearch.trim().length >= 2) {
             const timer = setTimeout(() => {
                 dispatch(actionsDirectors.fetchDirectors(directorSearch));
-            }, 500);
+            }, 1000);
             return () => clearTimeout(timer);
         }
     }, [dispatch, directorSearch, isEditMode]);
 
     // 4. Пошук Жанрів
     useEffect(() => {
-        if (isEditMode) {
+        if (isEditMode && genreSearch.trim().length >= 2) {
             const timer = setTimeout(() => {
                 dispatch(actionsGenres.fetchGenres(genreSearch));
-            }, 500);
+            }, 1000);
             return () => clearTimeout(timer);
         }
     }, [dispatch, genreSearch, isEditMode]);
 
 
-    // --- Validation Logic (4.3) ---
+    // --- Validation Logic ---
     const validate = () => {
         const newErrors = {};
 
-        if (!formData.title.trim()) newErrors.title = 'Назва фільму обов\'язкова';
+        if (!formData.title.trim()){
+            newErrors.title = 'Назва фільму обов\'язкова';
+        }
 
-        // Перевірка року (має бути числом і в межах розумного)
         if (!formData.released) {
             newErrors.released = 'Дата випуску обов\'язкова';
         } else {
-            const releaseYear = new Date(formData.released).getFullYear();
-            if (isNaN(releaseYear) || releaseYear < 1895 || releaseYear > 2100) {
+            const year = new Date(formData.released).getFullYear();
+            if (isNaN(year) || year < 1895 || year > 2100) {
                 newErrors.released = 'Рік має бути в межах 1895-2100';
             }
         }
 
-        // Перевірка рейтингу (0-10)
         if (formData.rating === '' || formData.rating === null) {
             newErrors.rating = 'Рейтинг обов\'язковий';
         } else if (isNaN(formData.rating) || formData.rating < 0 || formData.rating > 10) {
             newErrors.rating = 'Рейтинг має бути від 0 до 10';
         }
 
-        if (!formData.country.trim()) newErrors.country = 'Країна обов\'язкова';
 
-        // Для режисера важливо, щоб був ID (вибраний зі списку), а не просто текст
-        if (!formData.directorId) newErrors.director = 'Оберіть режисера зі списку';
+        if (!formData.directorId){
+            newErrors.director = 'Оберіть режисера зі списку';
+        }
 
-        if (formData.selectedGenres.length === 0) newErrors.genres = 'Додайте хоча б один жанр';
-
+        if (formData.selectedGenres.length === 0){
+            newErrors.genres = 'Додайте хоча б один жанр';
+        }
+        console.log(newErrors);
         setErrors(newErrors);
-        // Якщо об'єкт помилок порожній - валідація пройшла
         return Object.keys(newErrors).length === 0;
     };
 
@@ -313,7 +311,7 @@ function MovieDetails({ isCreateMode = false }) {
     };
 
 
-    // --- Save Logic (4.2, 4.3) ---
+    // --- Save Logic  ---
     const handleSave = () => {
         // 1. Валідація
         if (!validate()) {
@@ -325,7 +323,6 @@ function MovieDetails({ isCreateMode = false }) {
             title: formData.title,
             released: formData.released,
             rating: formData.rating,
-            country: formData.country,
             directorId: formData.directorId,
             genresId: formData.selectedGenres.map(g => g.id),
             awards: formData.awards.filter(a => a.trim() !== '')
@@ -363,10 +360,8 @@ function MovieDetails({ isCreateMode = false }) {
     // --- Cancel Logic ---
     const handleCancel = () => {
         if (isCreating) {
-            // При скасуванні створення повертаємось на список
             navigate(-1);
         } else {
-            // При скасуванні редагування повертаємо старі дані і вмикаємо режим перегляду
             resetForm();
             setIsEditMode(false);
             setMessage(null);
