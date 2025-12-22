@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUseStyles } from 'react-jss';
 
+// Actions
 import actionsMovies from 'app/actions/movies';
 import actionsDirectors from 'app/actions/director';
 import actionsGenres from 'app/actions/genre';
 
+// Components
 import Typography from 'components/Typography';
 import Loading from 'components/Loading';
 import Button from 'components/Button';
@@ -17,8 +19,10 @@ import TextField from 'components/TextField';
 import Menu from 'components/Menu';
 import MenuItem from 'components/MenuItem';
 
+// Icons
 import IconEdit from 'components/icons/Edit';
 import IconClose from 'components/icons/Close';
+import IconArrowBack from 'components/icons/Home';
 
 const useStyles = createUseStyles({
     container: {
@@ -34,16 +38,16 @@ const useStyles = createUseStyles({
         justifyContent: 'space-between',
         alignItems: 'center'
     },
+    headerLeft: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+    },
     detailsRow: {
         display: 'flex',
         flexDirection: 'column',
         gap: '5px',
         marginBottom: '15px',
-    },
-    rowContent: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
     },
     label: {
         fontWeight: 'bold',
@@ -88,79 +92,104 @@ const useStyles = createUseStyles({
     searchResults: {
         maxHeight: '200px',
         overflowY: 'auto',
+    },
+    errorText: {
+        color: 'red',
+        fontSize: '12px',
+        marginTop: '2px'
     }
 });
 
-function MovieDetails() {
+function MovieDetails({ isCreateMode = false }) {
     const classes = useStyles();
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { id } = useParams();
 
-    const isCreating = !id;
+    const isCreating = isCreateMode;
 
     // --- Redux State ---
     const { currentMovie, loadingDetails } = useSelector(({ movies }) => movies);
-    const { list: directorsList = [] } = useSelector(({ director }) => {
-        console.log('SELECTOR: Full Director State:', director); // <--- LOG 4
-        return director || {};
-    });
+    const { list: directorsList = [] } = useSelector(({ director }) => director || {});
     const { list: genresList = [] } = useSelector(({ genre }) => genre || {});
 
     // --- Local State ---
     const [isEditMode, setIsEditMode] = useState(isCreating);
     const [message, setMessage] = useState(null);
+    const [errors, setErrors] = useState({}); // Для валідації
 
     // Форма даних
     const [formData, setFormData] = useState({
         title: '',
         released: '',
         rating: '',
+        country: '',
         directorId: null,
         directorName: '',
         selectedGenres: [],
         awards: []
     });
 
+    // States для пошуку
     const [directorSearch, setDirectorSearch] = useState('');
     const [genreSearch, setGenreSearch] = useState('');
-
     const [directorAnchor, setDirectorAnchor] = useState(null);
     const [genreAnchor, setGenreAnchor] = useState(null);
 
     const directorInputRef = useRef(null);
     const genreInputRef = useRef(null);
 
+    // Функція скидання форми до значень з Redux ---
+    const resetForm = useCallback(() => {
+        if (currentMovie && !isCreating) {
+            setFormData({
+                title: currentMovie.title || '',
+                released: currentMovie.released || '',
+                rating: currentMovie.rating || '',
+                country: currentMovie.country || '',
+                directorId: currentMovie.director?.id || null,
+                directorName: currentMovie.director?.name || currentMovie.director?.fullName || '',
+                selectedGenres: Array.isArray(currentMovie.genres) ? currentMovie.genres : [],
+                awards: currentMovie.awards || []
+            });
+            setDirectorSearch(currentMovie.director?.name || currentMovie.director?.fullName || '');
+            setErrors({});
+        }
+    }, [currentMovie, isCreating]);
+
+    // --- Effects ---
+
+    // 1. Завантаження фільму (Тільки для перегляду/редагування)
     useEffect(() => {
         if (id && !isCreating) {
             dispatch(actionsMovies.fetchMovieById(id));
         }
     }, [dispatch, id, isCreating]);
 
-    // 2. Ініціалізація форми даними фільму
+    // 2. Ініціалізація форми (при завантаженні даних або вході в режим створення)
     useEffect(() => {
-        if (id && currentMovie && !isCreating) {
+        if (isCreating) {
+            setIsEditMode(true);
             setFormData({
-                title: currentMovie.title || '',
-                released: currentMovie.released || '',
-                rating: currentMovie.rating || '',
-                directorId: currentMovie.director?.id || null,
-                directorName: currentMovie.director?.name || currentMovie.director?.fullName || '',
-                selectedGenres: Array.isArray(currentMovie.genres)
-                    ? currentMovie.genres
-                    : [],
-                awards: currentMovie.awards || []
+                title: '',
+                released: '',
+                rating: '',
+                directorId: null,
+                directorName: '',
+                selectedGenres: [],
+                awards: []
             });
-            setDirectorSearch(currentMovie.director?.name || currentMovie.director.fullName || '');
+        } else {
+            resetForm();
         }
-    }, [currentMovie, id, isCreating]);
+    }, [currentMovie, isCreating, resetForm]);
 
     // 3. Пошук Режисерів
     useEffect(() => {
         if (isEditMode) {
             const timer = setTimeout(() => {
                 dispatch(actionsDirectors.fetchDirectors(directorSearch));
-            }, 500); // Затримка 0.5с
+            }, 500);
             return () => clearTimeout(timer);
         }
     }, [dispatch, directorSearch, isEditMode]);
@@ -176,17 +205,57 @@ function MovieDetails() {
     }, [dispatch, genreSearch, isEditMode]);
 
 
+    // --- Validation Logic (4.3) ---
+    const validate = () => {
+        const newErrors = {};
+
+        if (!formData.title.trim()) newErrors.title = 'Назва фільму обов\'язкова';
+
+        // Перевірка року (має бути числом і в межах розумного)
+        if (!formData.released) {
+            newErrors.released = 'Дата випуску обов\'язкова';
+        } else {
+            const releaseYear = new Date(formData.released).getFullYear();
+            if (isNaN(releaseYear) || releaseYear < 1895 || releaseYear > 2100) {
+                newErrors.released = 'Рік має бути в межах 1895-2100';
+            }
+        }
+
+        // Перевірка рейтингу (0-10)
+        if (formData.rating === '' || formData.rating === null) {
+            newErrors.rating = 'Рейтинг обов\'язковий';
+        } else if (isNaN(formData.rating) || formData.rating < 0 || formData.rating > 10) {
+            newErrors.rating = 'Рейтинг має бути від 0 до 10';
+        }
+
+        if (!formData.country.trim()) newErrors.country = 'Країна обов\'язкова';
+
+        // Для режисера важливо, щоб був ID (вибраний зі списку), а не просто текст
+        if (!formData.directorId) newErrors.director = 'Оберіть режисера зі списку';
+
+        if (formData.selectedGenres.length === 0) newErrors.genres = 'Додайте хоча б один жанр';
+
+        setErrors(newErrors);
+        // Якщо об'єкт помилок порожній - валідація пройшла
+        return Object.keys(newErrors).length === 0;
+    };
+
+
     // --- Handlers ---
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+        // При зміні поля прибираємо помилку для нього
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: null }));
+        }
     };
 
-    // -- Director Logic --
+    // -- Directors --
     const handleDirectorChange = (e) => {
         const value = e.target.value;
         setDirectorSearch(value);
-        setFormData(prev => ({ ...prev, directorName: value }));
+        setFormData(prev => ({ ...prev, directorName: value, directorId: null })); // Скидаємо ID при ручному вводі
         setDirectorAnchor(directorInputRef.current);
     };
 
@@ -198,9 +267,10 @@ function MovieDetails() {
         }));
         setDirectorSearch(director.fullName);
         setDirectorAnchor(null);
+        setErrors(prev => ({ ...prev, director: null })); // Прибираємо помилку
     };
 
-    // -- Genre Logic --
+    // -- Genres --
     const handleGenreSearchChange = (e) => {
         setGenreSearch(e.target.value);
         setGenreAnchor(genreInputRef.current);
@@ -213,6 +283,7 @@ function MovieDetails() {
                 ...prev,
                 selectedGenres: [...prev.selectedGenres, genre]
             }));
+            setErrors(prev => ({ ...prev, genres: null })); // Прибираємо помилку
         }
         setGenreSearch('');
         setGenreAnchor(null);
@@ -225,30 +296,32 @@ function MovieDetails() {
         }));
     };
 
-    // -- Awards Logic --
-
-    // Зміна тексту конкретної нагороди
+    // -- Awards --
     const handleAwardChange = (index, value) => {
         const newAwards = [...formData.awards];
         newAwards[index] = value;
         setFormData(prev => ({ ...prev, awards: newAwards }));
     };
 
-    // Додавання нового порожнього поля
     const handleAddAward = () => {
         setFormData(prev => ({ ...prev, awards: [...prev.awards, ''] }));
     };
 
-    // Видалення нагороди
     const handleRemoveAward = (index) => {
         const newAwards = formData.awards.filter((_, i) => i !== index);
         setFormData(prev => ({ ...prev, awards: newAwards }));
     };
 
-    // -- Save Logic --
+
+    // --- Save Logic (4.2, 4.3) ---
     const handleSave = () => {
+        // 1. Валідація
+        if (!validate()) {
+            setMessage({ type: 'error', text: 'Будь ласка, виправте помилки у формі.' });
+            return;
+        }
+
         const dataToSend = {
-            id: currentMovie.id, // ID фільму
             title: formData.title,
             released: formData.released,
             rating: formData.rating,
@@ -258,45 +331,80 @@ function MovieDetails() {
             awards: formData.awards.filter(a => a.trim() !== '')
         };
 
-        dispatch(actionsMovies.fetchUpdateMovie(id, dataToSend))
-            .then(() => {
-                setIsEditMode(false);
-                setMessage({ type: 'success', text: 'Фільм успішно оновлено!' });
-                setTimeout(() => setMessage(null), 3000);
-                // Оновлюємо дані на сторінці
-                dispatch(actionsMovies.fetchMovieById(id));
-            })
-            .catch(() => {
-                setMessage({ type: 'error', text: 'Помилка при збереженні.' });
-            });
-    };
+        const successCallback = (newMovieId) => {
+            setMessage({ type: 'success', text: isCreating ? 'Фільм успішно створено!' : 'Зміни успішно збережено!' });
+            setTimeout(() => setMessage(null), 3000);
 
-    const handleCancel = () => {
-        setIsEditMode(false);
-        setMessage(null);
-        if(currentMovie) {
-            setDirectorSearch(currentMovie.director?.name || '');
-            dispatch(actionsMovies.fetchMovieById(id));
+            if (isCreating) {
+                navigate(newMovieId ? `/movies/${newMovieId}` : -1);
+            } else {
+                setIsEditMode(false);
+                dispatch(actionsMovies.fetchMovieById(id));
+            }
+        };
+
+        const errorCallback = () => {
+            setMessage({ type: 'error', text: 'Помилка при збереженні даних.' });
+        };
+
+        if (isCreating) {
+            dispatch(actionsMovies.fetchCreateMovie(dataToSend))
+                .then((res) => successCallback(res?.id))
+                .catch(errorCallback);
+        } else {
+            const updateData = { ...dataToSend, id: currentMovie.id };
+            dispatch(actionsMovies.fetchUpdateMovie(id, updateData))
+                .then(() => successCallback())
+                .catch(errorCallback);
         }
     };
 
-    if (loadingDetails && !isCreating) return <Loading />;
 
-    if (!id && !isCreating && !currentMovie) return <Typography>Фільм не знайдено</Typography>;
+    // --- Cancel Logic ---
+    const handleCancel = () => {
+        if (isCreating) {
+            // При скасуванні створення повертаємось на список
+            navigate(-1);
+        } else {
+            // При скасуванні редагування повертаємо старі дані і вмикаємо режим перегляду
+            resetForm();
+            setIsEditMode(false);
+            setMessage(null);
+        }
+    };
+
+    // --- Loading & Error States ---
+    if (loadingDetails && !isCreating) return <Loading />;
+    if (!isCreating && !currentMovie) return <Typography>Фільм не знайдено</Typography>;
+
+    // Заголовок сторінки
+    const pageTitle = isCreating
+        ? 'Створення нового фільму'
+        : (isEditMode ? 'Редагування фільму' : currentMovie?.title);
 
     return (
         <div className={classes.container}>
+            {/* Messages */}
             {message && (
                 <div className={message.type === 'success' ? classes.successMessage : classes.errorMessage}>
                     <Typography color="inherit">{message.text}</Typography>
                 </div>
             )}
 
+            {/* Header */}
             <div className={classes.header}>
-                <Typography variant="title">
-                    {isEditMode ? 'Редагування фільму' : currentMovie.title}
-                </Typography>
-                {!isEditMode && (
+                <div className={classes.headerLeft}>
+                    {/* 4.6: Кнопка Назад */}
+                    <IconButton onClick={() => navigate(-1)}>
+                        <IconArrowBack />
+                    </IconButton>
+                    <Typography variant="title">
+                        {pageTitle}
+                    </Typography>
+                </div>
+
+                {/* 4.2: Кнопка Редагувати (тільки для перегляду) */}
+                {!isCreating && !isEditMode && (
                     <IconButton onClick={() => setIsEditMode(true)}>
                         <IconEdit />
                     </IconButton>
@@ -305,38 +413,59 @@ function MovieDetails() {
 
             <Card>
                 <CardContent>
-                    {/* Title */}
+                    {/* --- Title --- */}
                     <div className={classes.detailsRow}>
                         <div className={classes.label}><Typography variant="subTitle">Назва</Typography></div>
                         {isEditMode ? (
-                            <TextField value={formData.title} onChange={e => handleInputChange('title', e.target.value)} />
+                            <>
+                                <TextField
+                                    value={formData.title}
+                                    onChange={e => handleInputChange('title', e.target.value)}
+                                    error={!!errors.title} // (якщо TextField підтримує цей проп)
+                                />
+                                {errors.title && <div className={classes.errorText}>{errors.title}</div>}
+                            </>
                         ) : (
-
                             <Typography>{currentMovie?.title}</Typography>
                         )}
                     </div>
 
-                    {/* Released */}
+                    {/* --- Released --- */}
                     <div className={classes.detailsRow}>
                         <div className={classes.label}><Typography variant="subTitle">Рік випуску</Typography></div>
                         {isEditMode ? (
-                            <TextField inputType="date" value={formData.released} onChange={e => handleInputChange('released', e.target.value)} />
+                            <>
+                                <TextField
+                                    inputType="date"
+                                    value={formData.released}
+                                    onChange={e => handleInputChange('released', e.target.value)}
+                                />
+                                {errors.released && <div className={classes.errorText}>{errors.released}</div>}
+                            </>
                         ) : (
-                            <Typography>{currentMovie.released}</Typography>
+                            <Typography>{currentMovie?.released}</Typography>
                         )}
                     </div>
 
-                    {/* Rating */}
+                    {/* --- Rating --- */}
                     <div className={classes.detailsRow}>
-                        <div className={classes.label}><Typography variant="subTitle">Рейтинг</Typography></div>
+                        <div className={classes.label}><Typography variant="subTitle">Рейтинг (0-10)</Typography></div>
                         {isEditMode ? (
-                            <TextField inputType="number" value={formData.rating} onChange={e => handleInputChange('rating', e.target.value)} />
+                            <>
+                                <TextField
+                                    inputType="number"
+                                    value={formData.rating}
+                                    onChange={e => handleInputChange('rating', e.target.value)}
+                                />
+                                {errors.rating && <div className={classes.errorText}>{errors.rating}</div>}
+                            </>
                         ) : (
-                            <Typography>{currentMovie.rating}</Typography>
+                            <Typography>{currentMovie?.rating}</Typography>
                         )}
                     </div>
 
-                    {/* --- Director Search --- */}
+
+                    {/* --- Director --- */}
                     <div className={classes.detailsRow}>
                         <div className={classes.label}><Typography variant="subTitle">Режисер</Typography></div>
                         {isEditMode ? (
@@ -346,7 +475,8 @@ function MovieDetails() {
                                     onChange={handleDirectorChange}
                                     placeholder="Почніть вводити ім'я..."
                                 />
-                                {!directorsList.length && console.log(directorsList)}
+                                {errors.director && <div className={classes.errorText}>{errors.director}</div>}
+
                                 <Menu
                                     anchorEl={directorAnchor}
                                     open={!!directorAnchor && directorsList.length > 0}
@@ -358,18 +488,17 @@ function MovieDetails() {
                                             {director.fullName}
                                         </MenuItem>
                                     ))}
-                                    {directorsList.length === 0 && (
+                                    {directorsList.length === 0 && directorSearch && (
                                         <div style={{padding: 10}}>Нічого не знайдено</div>
                                     )}
                                 </Menu>
                             </div>
                         ) : (
-                            <Typography>{currentMovie.director.fullName || currentMovie.director?.fullName}</Typography>
+                            <Typography>{currentMovie?.director?.fullName || currentMovie?.director?.name}</Typography>
                         )}
                     </div>
 
-
-                    {/* --- Genres Search & Add --- */}
+                    {/* --- Genres --- */}
                     <div className={classes.detailsRow}>
                         <div className={classes.label}><Typography variant="subTitle">Жанри</Typography></div>
                         {isEditMode ? (
@@ -393,7 +522,8 @@ function MovieDetails() {
                                         ))}
                                     </Menu>
                                 </div>
-                                {/* Відображення вибраних жанрів */}
+                                {errors.genres && <div className={classes.errorText}>{errors.genres}</div>}
+
                                 <div className={classes.genresTagsContainer}>
                                     {formData.selectedGenres.map(genre => (
                                         <div key={genre.id} className={classes.genreTag}>
@@ -407,14 +537,14 @@ function MovieDetails() {
                             </div>
                         ) : (
                             <Typography>
-                                {Array.isArray(currentMovie.genres)
+                                {Array.isArray(currentMovie?.genres)
                                     ? currentMovie.genres.map(g => g.name || g).join(', ')
                                     : ''}
                             </Typography>
                         )}
                     </div>
 
-                    {/* Awards */}
+                    {/* --- Awards --- */}
                     <div className={classes.detailsRow}>
                         <div className={classes.label}><Typography variant="subTitle">Нагороди</Typography></div>
                         {isEditMode ? (
@@ -437,16 +567,20 @@ function MovieDetails() {
                             </div>
                         ) : (
                             <Typography>
-                                {Array.isArray(currentMovie.awards) ? currentMovie.awards.join(', ') : ''}
+                                {Array.isArray(currentMovie?.awards) ? currentMovie.awards.join(', ') : ''}
                             </Typography>
                         )}
                     </div>
 
-                    {/* Actions */}
+                    {/* Actions Buttons */}
                     {isEditMode ? (
                         <div className={classes.actions}>
-                            <Button variant="secondary" onClick={handleCancel}>Скасувати</Button>
-                            <Button variant="primary" onClick={handleSave}>Зберегти</Button>
+                            <Button variant="secondary" onClick={handleCancel}>
+                                Скасувати
+                            </Button>
+                            <Button variant="primary" onClick={handleSave}>
+                                {isCreating ? 'Створити' : 'Зберегти'}
+                            </Button>
                         </div>
                     ) : (
                         <div className={classes.actions}>

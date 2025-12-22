@@ -8,6 +8,9 @@ import {
     UPDATE_MOVIE_REQUEST,
     UPDATE_MOVIE_SUCCESS,
     UPDATE_MOVIE_ERROR,
+    CREATE_MOVIE_REQUEST,
+    CREATE_MOVIE_SUCCESS,
+    CREATE_MOVIE_ERROR
 } from '../constants/moviesActionTypes';
 
 const initialState = {
@@ -74,6 +77,19 @@ export default function Reducer(state = initialState, action) {
             };
         }
         case UPDATE_MOVIE_ERROR: {
+            return { ...state, loadingDetails: false };
+        }
+        case CREATE_MOVIE_REQUEST: {
+            return { ...state, loadingDetails: true };
+        }
+        case CREATE_MOVIE_SUCCESS: {
+            return {
+                ...state,
+                loadingDetails: false,
+                currentMovie: action.payload
+            };
+        }
+        case CREATE_MOVIE_ERROR: {
             return { ...state, loadingDetails: false };
         }
         default:

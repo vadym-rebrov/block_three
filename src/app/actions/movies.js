@@ -10,6 +10,10 @@ import {
     UPDATE_MOVIE_REQUEST,
     UPDATE_MOVIE_SUCCESS,
     UPDATE_MOVIE_ERROR,
+    CREATE_MOVIE_REQUEST,
+    CREATE_MOVIE_SUCCESS,
+    CREATE_MOVIE_ERROR
+
 } from '../constants/moviesActionTypes';
 
 const requestMovies = () => ({ type: REQUEST_MOVIES });
@@ -72,11 +76,26 @@ export const fetchUpdateMovie = (id, data) => (dispatch) => {
         });
 };
 
+export const fetchCreateMovie = (movieData) => (dispatch) => {
+    dispatch({ type: CREATE_MOVIE_REQUEST });
+    return axios.post(`${config.SERVICE}/api/movie`, movieData)
+        .then((response) => {
+            dispatch({ type: CREATE_MOVIE_SUCCESS, payload: response });
+            return response;
+        })
+        .catch((error) => {
+            console.error('Error creating movie:', error);
+            dispatch({ type: CREATE_MOVIE_ERROR });
+            throw error;
+        });
+};
+
 const exportFunctions = {
     fetchMovies,
     fetchDeleteMovie,
     fetchMovieById,
-    fetchUpdateMovie
+    fetchUpdateMovie,
+    fetchCreateMovie
 };
 
 export default exportFunctions;

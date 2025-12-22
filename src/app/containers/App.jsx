@@ -77,15 +77,15 @@ function App() {
                         element={<MoviesPage />}
                         path={`${pageURLs[pages.movies]}`}
                     />
-
+                    <Route
+                        element={<MovieDetails isCreateMode={true} />}
+                        path={pageURLs[pages.addMovie]}
+                    />
                     <Route
                         element={<MovieDetails />}
                         path={pageURLs[pages.movieProfile]}
                     />
-                    <Route
-                        element={<MovieDetails />}
-                        path={pageURLs[pages.addMovie]}
-                    />
+
                     <Route
                       element={<DefaultPage />}
                       path={`${pageURLs[pages.defaultPage]}`}
