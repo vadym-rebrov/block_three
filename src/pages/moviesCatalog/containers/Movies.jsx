@@ -37,7 +37,7 @@ const useStyles = createUseStyles((theme) => ({
     }
 }));
 
-
+const moviesPerPage = 9;
 
 function Movies() {
     const classes = useStyles();
@@ -103,7 +103,7 @@ function Movies() {
 
         dispatch(actionsMovies.fetchMovies({
             page: queryParams.page,
-            size: 10,
+            size: moviesPerPage,
             ...filtersToSend
         }));
     }, [dispatch, queryParams]);
