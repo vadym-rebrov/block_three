@@ -1,0 +1,18 @@
+{ "pageTitle": "Movies catalog",
+  "btnAdd": "Add Movie",
+  "btnFilter": "Filter",
+  "filterTitle": "Filter",
+  "filterDirector": "Director",
+  "filterMinRating": "Min Rating",
+  "filterMaxRating": "Max Rating",
+  "filterClear": "Clear Filter",
+  "cardYear": "Year:",
+  "cardRating": "Rating:",
+  "cardDirector": "Director:",
+  "cardGenres": "Genres:",
+  "deleteTitle": "Delete Movie",
+  "deleteConfirm": "Are you sure you want to delete the movie",
+  "btnCancel": "Cancel",
+  "btnDelete": "Delete",
+  "errorDelete": "Failed to delete movie."
+}

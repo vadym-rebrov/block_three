@@ -25,6 +25,8 @@ import Header from '../components/Header';
 import IntlProvider from '../components/IntlProvider';
 import MissedPage from '../components/MissedPage';
 import SearchParamsConfigurator from '../components/SearchParamsConfigurator';
+import MoviesPage from 'pageProviders/Movies';
+import MovieDetails from "../../pageProviders/MovieDetails";
 
 function App() {
   const dispatch = useDispatch();
@@ -71,6 +73,19 @@ function App() {
                 )}
                 {!isFetchingUser && (
                   <Routes>
+                    <Route
+                        element={<MoviesPage />}
+                        path={`${pageURLs[pages.movies]}`}
+                    />
+                    <Route
+                        element={<MovieDetails isCreateMode={true} />}
+                        path={pageURLs[pages.addMovie]}
+                    />
+                    <Route
+                        element={<MovieDetails />}
+                        path={pageURLs[pages.movieProfile]}
+                    />
+
                     <Route
                       element={<DefaultPage />}
                       path={`${pageURLs[pages.defaultPage]}`}
