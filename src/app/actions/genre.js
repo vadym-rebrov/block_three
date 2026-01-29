@@ -9,7 +9,7 @@ import {
 export const fetchGenres = (searchName = '') => (dispatch) => {
     dispatch({ type: REQUEST_GENRES });
 
-    return axios.post(`${config.SERVICE}/api/genre/_list`, {
+    return axios.post(`${config.API_URL}/api/genre/_list`, {
         name: searchName
     })
     .then((response) => {

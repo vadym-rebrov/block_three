@@ -31,7 +31,7 @@ export const fetchMovies = (filters = {}) => (dispatch) => {
     };
 
     return axios.post(
-        `${config.SERVICE}/api/movie/_list`,
+        `${config.API_URL}/api/movie/_list`,
         queryDto
     )
         .then((response) => {
@@ -41,7 +41,7 @@ export const fetchMovies = (filters = {}) => (dispatch) => {
 };
 
 export const fetchDeleteMovie = (id) => (dispatch) => {
-    return axios.delete(`${config.SERVICE}/api/movie/${id}`)
+    return axios.delete(`${config.API_URL}/api/movie/${id}`)
         .then(() => {
             dispatch(fetchMovies());
             return { success: true };
@@ -54,7 +54,7 @@ export const fetchDeleteMovie = (id) => (dispatch) => {
 export const fetchMovieById = (id) => (dispatch) => {
     dispatch({ type: GET_MOVIE_DETAILS_REQUEST });
 
-    return axios.get(`${config.SERVICE}/api/movie/${id}`)
+    return axios.get(`${config.API_URL}/api/movie/${id}`)
         .then((data) => {
             dispatch({ type: GET_MOVIE_DETAILS_SUCCESS, payload: data });
         })
@@ -65,7 +65,7 @@ export const fetchMovieById = (id) => (dispatch) => {
 
 export const fetchUpdateMovie = (id, data) => (dispatch) => {
     dispatch({ type: UPDATE_MOVIE_REQUEST });
-    return axios.put(`${config.SERVICE}/api/movie/${id}`, data)
+    return axios.put(`${config.API_URL}/api/movie/${id}`, data)
         .then((response) => {
             dispatch({ type: UPDATE_MOVIE_SUCCESS, payload: response });
             return response;
@@ -78,7 +78,7 @@ export const fetchUpdateMovie = (id, data) => (dispatch) => {
 
 export const fetchCreateMovie = (movieData) => (dispatch) => {
     dispatch({ type: CREATE_MOVIE_REQUEST });
-    return axios.post(`${config.SERVICE}/api/movie`, movieData)
+    return axios.post(`${config.API_URL}/api/movie`, movieData)
         .then((response) => {
             dispatch({ type: CREATE_MOVIE_SUCCESS, payload: response });
             return response;

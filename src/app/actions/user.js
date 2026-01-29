@@ -75,9 +75,9 @@ const requestSignOut = () => ({
 
 const getUser = () => {
   const {
-    SERVICE,
+    API_URL,
   } = config;
-  return axios.get(`${SERVICE}/user/get`);
+  return axios.get(`${API_URL}/user/get`);
 };
 
 const signIn = ({
@@ -86,10 +86,10 @@ const signIn = ({
   password,
 }) => {
   const {
-    SERVICE,
+    API_URL,
   } = config;
   return axios.post(
-    `${SERVICE}/user/signIn`,
+    `${API_URL}/user/signIn`,
     {
       email,
       login,
@@ -106,10 +106,10 @@ const signUp = ({
   password,
 }) => {
   const {
-    SERVICE,
+    API_URL,
   } = config;
   return axios.post(
-    `${SERVICE}/user/signUp`,
+    `${API_URL}/user/signUp`,
     {
       email,
       firstName,

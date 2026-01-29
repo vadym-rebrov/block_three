@@ -5,12 +5,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: frontend-react
+    container_name: frontend
     ports:
       - "3000:80"
+    environment:
+      - SERVICE_NAME=frontend
     networks:
       - shared-kafka-net
-
+  registrator:
+    image: gliderlabs/registrator:master
+    container_name: service-registrator
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+    command: -internal consul://consul:8500
+    networks:
+      - shared-kafka-net
 networks:
   shared-kafka-net:
     external: true

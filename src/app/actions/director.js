@@ -9,7 +9,7 @@ import {
 export const fetchDirectors = (searchName = '') => (dispatch) => {
     dispatch({ type: REQUEST_DIRECTORS });
 
-    return axios.post(`${config.SERVICE}/api/director/_list`, {
+    return axios.post(`${config.API_URL}/api/director/_list`, {
         name: searchName
     })
         .then((response) => {
