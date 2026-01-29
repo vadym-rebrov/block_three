@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: frontend-react
+    ports:
+      - "3000:80"
+    networks:
+      - shared-kafka-net
+
+networks:
+  shared-kafka-net:
+    external: true
