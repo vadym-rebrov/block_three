@@ -1,40 +1,25 @@
-import * as pages from 'constants/pages';
-import { useSelector } from 'react-redux';
-import LoginPage from 'pages/login';
-import pagesURLs from 'constants/pagesURLs';
 import React, { useEffect } from 'react';
+import useUser from 'misc/hooks/useUser';
 import useChangePage from 'misc/hooks/useChangePage';
-import useLocationSearch from 'misc/hooks/useLocationSearch';
 
-import PageContainer from './components/PageContainer';
-
-const Login = (props) => {
-  const locationSearch = useLocationSearch();
-  const user = useSelector(({ user }) => user);
+import LoginPage from 'pages/login';
+import pageURLs from 'constants/pagesURLs';
+import * as pages from 'constants/pages'
+const Login = () => {
+  const { isLogined, isLoaded } = useUser();
   const changePage = useChangePage();
 
   useEffect(() => {
-    if (user.isAuthorized) {
-      changePage({
-        locationSearch: locationSearch.redirectLocationSearch
-          ? JSON.parse(locationSearch.redirectLocationSearch)
-          : locationSearch,
-        pathname: locationSearch.redirectPathname
-          || `${pagesURLs[pages.defaultPage]}`,
-        replace: true,
-      });
+    if (isLoaded && isLogined) {
+      changePage({ path: `/${pageURLs[pages.defaultPage]}` });
     }
-  }, [user.isAuthorized]);
+  }, [isLoaded, isLogined, changePage]);
 
-  return (
-    <PageContainer>
-      {user.isAuthorized
-        ? null
-        : (
-          <LoginPage {...props} />
-        )}
-    </PageContainer>
-  );
+  if (isLogined) {
+    return null;
+  }
+
+  return (<LoginPage />);
 };
 
 export default Login;
