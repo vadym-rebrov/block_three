@@ -52,7 +52,14 @@ export default function Reducer(state = initialState, action) {
       };
     }
 
-    case RECEIVE_USER:
+    case RECEIVE_USER: {
+      return {
+        ...state,
+        isFetchingUser: false,
+        isAuthorized: true,
+        ...action.payload,
+      };
+    }
     case SUCCESS_SIGN_IN: {
       const user = action.payload;
 
@@ -76,7 +83,13 @@ export default function Reducer(state = initialState, action) {
       };
     }
 
-    case ERROR_RECEIVE_USER:
+    case ERROR_RECEIVE_USER:{
+      return {
+        ...initialState,
+        isFetchingUser: false,
+        isAuthorized: false,
+      };
+    }
     case REQUEST_SIGN_OUT: {
       return initialState;
     }
@@ -96,7 +109,6 @@ export default function Reducer(state = initialState, action) {
         isFetchingUser: true,
       };
     }
-
     case REQUEST_SIGN_UP: {
       return {
         ...state,
