@@ -2,14 +2,15 @@ import axios from 'misc/requests';
 import config from 'config';
 import storage, { keys } from 'misc/storage';
 import {
-  ERROR_SIGN_IN,
+  ERROR_RECEIVE_USER,
+  ERROR_SIGN_IN, ERROR_SIGN_OUT,
   ERROR_SIGN_UP,
   RECEIVE_USER,
   REQUEST_SIGN_IN,
   REQUEST_SIGN_OUT,
   REQUEST_SIGN_UP,
   REQUEST_USER,
-  SUCCESS_SIGN_IN,
+  SUCCESS_SIGN_IN, SUCCESS_SIGN_OUT,
   SUCCESS_SIGN_UP,
 } from '../constants/actionTypes';
 
@@ -35,6 +36,10 @@ const MOCK_USER_AUTH_RESPONSE = {
 const receiveUser = (user) => ({
   payload: user,
   type: RECEIVE_USER,
+});
+
+const errorReceiveUser = () => ({
+  type: ERROR_RECEIVE_USER,
 });
 
 const requestUser = () => ({
@@ -70,6 +75,14 @@ const successSignUp = () => ({
 
 const requestSignOut = () => ({
   type: REQUEST_SIGN_OUT,
+});
+
+const successSignOut = () => ({
+  type: SUCCESS_SIGN_OUT,
+});
+
+const errorSignOut = () => ({
+  type: ERROR_SIGN_OUT,
 });
 
 const getUser = () => {
@@ -150,10 +163,18 @@ const fetchSignIn = ({
 };
 
 const fetchSignOut = () => (dispatch) => {
-  storage.removeItem(keys.TOKEN);
-  storage.removeItem(keys.TOKEN_EXPIRATION);
-  storage.removeItem('USER'); // TODO: Mocked code
   dispatch(requestSignOut());
+  const {
+    API_URL,
+  } = config;
+  axios.post(`${API_URL}/logout`).then(() => {
+    dispatch(successSignOut())
+    storage.removeItem(keys.TOKEN);
+    window.location.href = '/';
+  }).catch((error)=>{
+        console.error('Logout request failed', error);
+        dispatch(errorSignOut())
+  });
 };
 
 const fetchSignUp = ({
@@ -178,11 +199,10 @@ const fetchUser = () => (dispatch) => {
   return getUser()
       .then((response) => {
         const user = response.data || response;
-
         dispatch(receiveUser(user));
       })
       .catch((err) => {
-        dispatch(receiveUser({ isAuthorized: false }))
+        dispatch(errorReceiveUser());
       });
 };
 

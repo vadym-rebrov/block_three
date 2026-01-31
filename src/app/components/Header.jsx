@@ -104,13 +104,12 @@ function Header({
     isUserMenuOpened: false,
   });
 
-  const userName = user.firstName || user.login;
+  const userName = user.fullName || user.login;
 
   const actualOrderedRightPanelItemTypes = useMemo(() => {
     const result = [];
     if (user.isAuthorized) {
       result.push(rightPanelItemTypes.USER_NAME);
-      // Добавляем кнопку Logout, если пользователь авторизован
       result.push(rightPanelItemTypes.LOGOUT);
     } else if (
         !user.isFetchingUser
@@ -120,7 +119,6 @@ function Header({
     }
     result.push(rightPanelItemTypes.LANGUAGE);
 
-    // Вставляем разделители
     return result.reduce((acc, item, index) => {
       if (index > 0) {
         acc.push(rightPanelItemTypes.SEPARATOR);
