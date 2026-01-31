@@ -178,22 +178,16 @@ const fetchSignUp = ({
 };
 
 const fetchUser = () => (dispatch) => {
-  if (!storage.getItem(keys.TOKEN)) {
-    return null;
-  }
   dispatch(requestUser());
+
   return getUser()
-    // TODO Mocked '.catch()' section
-    .catch((err) => {
-      const user = storage.getItem('USER');
-      if (user) {
-        const parsedUser = JSON.parse(user);
-        return parsedUser;
-      }
-      return Promise.reject(err);
-    })
-    .then(user => dispatch(receiveUser(user)))
-    .catch(() => dispatch(fetchSignOut()));
+      .then((response) => {
+        const user = response.data || response;
+        dispatch(receiveUser(user));
+      })
+      .catch((err) => {
+        dispatch(receiveUser({ isAuthorized: false }))
+      });
 };
 
 const exportFunctions = {
