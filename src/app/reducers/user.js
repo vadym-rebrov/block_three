@@ -13,7 +13,7 @@ import {
 
 const initialState = {
   authorities: [],
-  firstName: '',
+  fullName: '',
   email: '',
   errors: [],
   id: '',
@@ -60,12 +60,11 @@ export default function Reducer(state = initialState, action) {
         ...state,
         authorities: user.authorities || initialState.authorities,
         email: user.email || initialState.email,
-        firstName: user.firstName || initialState.firstName,
+        fullName: user.fullName || initialState.fullName,
         id: user.id || initialState.id,
         isAuthorized: true,
         isFetchingSignIn: false,
         isFetchingUser: false,
-        lastName: user.lastName || initialState.lastName,
         login: user.login || initialState.login,
       };
     }

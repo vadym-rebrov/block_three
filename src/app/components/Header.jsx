@@ -80,13 +80,14 @@ const orderedInterfaceLangs = [
 const rightPanelItemTypes = {
   LANGUAGE: 'language',
   LOGIN: 'login',
+  LOGOUT: 'logout', // Добавили новый тип
   SEPARATOR: 'separator',
   USER_NAME: 'userName',
 };
 
 function Header({
-  onLogout,
-}) {
+                  onLogout,
+                }) {
   const { theme } = useTheme();
   const { formatMessage } = useIntl();
   const changePage = useChangePage();
@@ -97,7 +98,7 @@ function Header({
   const locationSearch = useLocationSearch();
   const user = useSelector(({ user: reducerUser }) => reducerUser);
   const userMenuRef = useRef(null);
-
+  console.log(user);
   const [state, setState] = useState({
     isLangsMenuOpened: false,
     isUserMenuOpened: false,
@@ -109,13 +110,17 @@ function Header({
     const result = [];
     if (user.isAuthorized) {
       result.push(rightPanelItemTypes.USER_NAME);
+      // Добавляем кнопку Logout, если пользователь авторизован
+      result.push(rightPanelItemTypes.LOGOUT);
     } else if (
-      !user.isFetchingUser
-      && currentPage !== pages.login
+        !user.isFetchingUser
+        && currentPage !== pages.login
     ) {
       result.push(rightPanelItemTypes.LOGIN);
     }
     result.push(rightPanelItemTypes.LANGUAGE);
+
+    // Вставляем разделители
     return result.reduce((acc, item, index) => {
       if (index > 0) {
         acc.push(rightPanelItemTypes.SEPARATOR);
@@ -126,187 +131,210 @@ function Header({
   }, [user, currentPage]);
 
   return (
-    <div className={classes.container}>
-      <div className={classes.content}>
-        <div className={classes.toolBarContainerLeft}>
-          <LeftNavBar />
-          <Link
-            to={{
-              pathname: `${pagesURLs[pages.defaultPage]}`,
-            }}
-          >
-            <Hover
-              light
-              selected={currentPage === pages.defaultPage}
+      <div className={classes.container}>
+        <div className={classes.content}>
+          <div className={classes.toolBarContainerLeft}>
+            <LeftNavBar />
+            <Link
+                to={{
+                  pathname: `${pagesURLs[pages.defaultPage]}`,
+                }}
             >
-              <div className={classes.hover}>
-                <Logo compact={isMobile} />
-              </div>
-            </Hover>
-          </Link>
-          {user.isAuthorized && (
-              <Link to={{
-                pathname: `${pagesURLs[pages.movies]}`,
-              }}>
-                <Typography variant="title" color={'#c500dd'}><b>Movies</b></Typography>
-              </Link>
-          )}
-        </div>
-        <div className={classes.toolBarContainerRight}>
-          {actualOrderedRightPanelItemTypes.map((itemType) => (
-            <>
-              {itemType === rightPanelItemTypes.USER_NAME && (
-                <div ref={userMenuRef}>
-                  <Hover
-                    light
-                    onClick={() => setState({
-                      ...state,
-                      isUserMenuOpened: true,
-                    })}
-                    selected={state.isUserMenuOpened}
-                  >
-                    <div className={classes.hover}>
-                      <div
-                        className={isMobile ? classes.userNameMobile : ''}
+              <Hover
+                  light
+                  selected={currentPage === pages.defaultPage}
+              >
+                <div className={classes.hover}>
+                  <Logo compact={isMobile} />
+                </div>
+              </Hover>
+            </Link>
+            {user.isAuthorized && (
+                <Link to={{
+                  pathname: `${pagesURLs[pages.movies]}`,
+                }}>
+                  <Typography variant="title" color={'#c500dd'}><b>Movies</b></Typography>
+                </Link>
+            )}
+          </div>
+          <div className={classes.toolBarContainerRight}>
+            {actualOrderedRightPanelItemTypes.map((itemType) => (
+                <React.Fragment key={itemType}>
+                  {itemType === rightPanelItemTypes.USER_NAME && (
+                      <div ref={userMenuRef}>
+                        <Hover
+                            light
+                            onClick={() => setState({
+                              ...state,
+                              isUserMenuOpened: true,
+                            })}
+                            selected={state.isUserMenuOpened}
+                        >
+                          <div className={classes.hover}>
+                            <div
+                                className={isMobile ? classes.userNameMobile : ''}
+                            >
+                              <Typography
+                                  color="paper"
+                                  noWrap
+                                  variant="subtitle"
+                              >
+                                {!isMobile
+                                    ? (
+                                        <strong>
+                                          {userName}
+                                        </strong>
+                                    )
+                                    : userName
+                                }
+                              </Typography>
+                            </div>
+                          </div>
+                        </Hover>
+                      </div>
+                  )}
+                  {itemType === rightPanelItemTypes.LOGIN && (
+                      <Link
+                          to={{
+                            pathname: `${pagesURLs[pages.login]}`,
+                          }}
+                      >
+                        <Button
+                            colorVariant="header"
+                            variant="text"
+                        >
+                          <Typography
+                              color="inherit"
+                              variant="subtitle"
+                          >
+                            <strong>
+                              {formatMessage({ id: 'signIn' })}
+                            </strong>
+                          </Typography>
+                        </Button>
+                      </Link>
+                  )}
+                  {/* Рендер кнопки LOGOUT */}
+                  {itemType === rightPanelItemTypes.LOGOUT && (
+                      <Button
+                          colorVariant="header"
+                          variant="text"
+                          onClick={onLogout}
                       >
                         <Typography
-                          color="paper"
-                          noWrap
-                          variant="subtitle"
+                            color="#f009"
+                            variant="subtitle"
                         >
-                          {!isMobile
-                            ? (
-                              <strong>
-                                {userName}
-                              </strong>
-                            )
-                            : userName
-                          }
+                          <strong>
+                            {formatMessage({ id: 'signOut' })}
+                          </strong>
                         </Typography>
-                      </div>
-                    </div>
-                  </Hover>
-                </div>
-              )}
-              {itemType === rightPanelItemTypes.LOGIN && (
-                <Link
-                  to={{
-                    pathname: `${pagesURLs[pages.login]}`,
-                  }}
-                >
-                  <Button
-                    colorVariant="header"
-                    variant="text"
-                  >
-                    <Typography
-                      color="inherit"
-                      variant="subtitle"
-                    >
-                      <strong>
-                        {formatMessage({ id: 'signIn' })}
-                      </strong>
-                    </Typography>
-                  </Button>
-                </Link>
-              )}
-              {itemType === rightPanelItemTypes.LANGUAGE && (
-                <>
-                  <div className={classes.selectedLang}>
-                    <Typography
-                      color="paper"
-                      noWrap
-                    >
-                      {(isMobile
-                        ? interfaceLagsTranslateShort
-                        : interfaceLagsTranslate
-                      )[locationSearch.lang]}
-                    </Typography>
-                  </div>
-                  <div ref={langsMenuRef}>
-                    <IconButton
-                      colorVariant="header"
-                      onClick={() => setState({
+                      </Button>
+                  )}
+                  {itemType === rightPanelItemTypes.LANGUAGE && (
+                      <>
+                        <div className={classes.selectedLang}>
+                          <Typography
+                              color="paper"
+                              noWrap
+                          >
+                            {(isMobile
+                                    ? interfaceLagsTranslateShort
+                                    : interfaceLagsTranslate
+                            )[locationSearch.lang]}
+                          </Typography>
+                        </div>
+                        <div ref={langsMenuRef}>
+                          <IconButton
+                              colorVariant="header"
+                              onClick={() => setState({
+                                ...state,
+                                isLangsMenuOpened: true,
+                              })}
+                          >
+                            <IconGlobus
+                                color="header"
+                                size={32}
+                            />
+                          </IconButton>
+                        </div>
+                      </>
+                  )}
+                  {itemType === rightPanelItemTypes.SEPARATOR && (
+                      <Typography
+                          color="paper"
+                          variant="subtitle"
+                      >
+                        <strong>
+                          |
+                        </strong>
+                      </Typography>
+                  )}
+                </React.Fragment>
+            ))}
+          </div>
+
+          {/* Меню языков */}
+          <Menu
+              anchorEl={langsMenuRef.current}
+              colorVariant="header"
+              open={state.isLangsMenuOpened}
+              onClose={() => setState({
+                ...state,
+                isLangsMenuOpened: false,
+              })}
+          >
+            {orderedInterfaceLangs.map(lang => (
+                <MenuItem
+                    key={lang}
+                    onClick={() => {
+                      changePage({
+                        locationSearch: {
+                          ...locationSearch,
+                          lang,
+                        },
+                        replace: true,
+                      });
+                      setState({
                         ...state,
-                        isLangsMenuOpened: true,
-                      })}
-                    >
-                      <IconGlobus
-                        color="header"
-                        size={32}
-                      />
-                    </IconButton>
-                  </div>
-                </>
-              )}
-              {itemType === rightPanelItemTypes.SEPARATOR && (
-                <Typography
-                  color="paper"
-                  variant="subtitle"
+                        isLangsMenuOpened: false,
+                      });
+                    }}
+                    selected={locationSearch.lang === lang}
                 >
-                  <strong>
-                    |
-                  </strong>
-                </Typography>
-              )}
-            </>
-          ))}
-        </div>
-        <Menu
-          anchorEl={langsMenuRef.current}
-          colorVariant="header"
-          open={state.isLangsMenuOpened}
-          onClose={() => setState({
-            ...state,
-            isLangsMenuOpened: false,
-          })}
-        >
-          {orderedInterfaceLangs.map(lang => (
-            <MenuItem
-              onClick={() => {
-                changePage({
-                  locationSearch: {
-                    ...locationSearch,
-                    lang,
-                  },
-                  replace: true,
-                });
-                setState({
-                  ...state,
-                  isLangsMenuOpened: false,
-                });
-              }}
-              selected={locationSearch.lang === lang}
-            >
-              <Typography>
-                {interfaceLagsTranslate[lang]}
-              </Typography>
-            </MenuItem>
-          ))}
-        </Menu>
-        <Menu
-          anchorEl={userMenuRef.current}
-          open={state.isUserMenuOpened}
-          onClose={() => setState({
-            ...state,
-            isUserMenuOpened: false,
-          })}
-        >
-          <MenuItem
-            onClick={() => {
-              setState({
+                  <Typography>
+                    {interfaceLagsTranslate[lang]}
+                  </Typography>
+                </MenuItem>
+            ))}
+          </Menu>
+
+          {/* Меню пользователя (можно убрать пункт выхода отсюда, если он дублируется, или оставить) */}
+          <Menu
+              anchorEl={userMenuRef.current}
+              open={state.isUserMenuOpened}
+              onClose={() => setState({
                 ...state,
                 isUserMenuOpened: false,
-              });
-              onLogout();
-            }}
+              })}
           >
-            <Typography>
-              {formatMessage({ id: 'signOut' })}
-            </Typography>
-          </MenuItem>
-        </Menu>
+            {/* Оставляем меню для будущих пунктов профиля, но пока оно может быть пустым или содержать Logout как дубль */}
+            <MenuItem
+                onClick={() => {
+                  setState({
+                    ...state,
+                    isUserMenuOpened: false,
+                  });
+                  onLogout();
+                }}
+            >
+              <Typography>
+                {formatMessage({ id: 'signOut' })}
+              </Typography>
+            </MenuItem>
+          </Menu>
+        </div>
       </div>
-    </div>
   );
 }
 

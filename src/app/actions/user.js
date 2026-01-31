@@ -22,9 +22,8 @@ const MOCK_USER_AUTH_RESPONSE = {
   user: {
     authorities: ['ENABLE_SEE_SECRET_PAGE'],
     email: 'adminMail@gmail.com',
-    firstName: 'Адмiнич',
+    fullName: 'Адмiнич',
     id: '123',
-    lastName: 'Адмiнченко',
     login: 'admin',
   },
   token: {
@@ -77,7 +76,7 @@ const getUser = () => {
   const {
     API_URL,
   } = config;
-  return axios.get(`${API_URL}/user/get`);
+  return axios.get(`${API_URL}/profile`);
 };
 
 const signIn = ({
@@ -100,8 +99,7 @@ const signIn = ({
 
 const signUp = ({
   email,
-  firstName,
-  lastName,
+  fullName,
   login,
   password,
 }) => {
@@ -112,8 +110,7 @@ const signUp = ({
     `${API_URL}/user/signUp`,
     {
       email,
-      firstName,
-      lastName,
+      fullName,
       login,
       password,
     },
@@ -161,16 +158,14 @@ const fetchSignOut = () => (dispatch) => {
 
 const fetchSignUp = ({
   email,
-  firstName,
-  lastName,
+  fullName,
   login,
   password,
 }) => (dispatch) => {
   dispatch(requestSignUp());
   return signUp({
     email,
-    firstName,
-    lastName,
+    fullName,
     login,
     password,
   }).then(() => dispatch(successSignUp()))
@@ -183,6 +178,7 @@ const fetchUser = () => (dispatch) => {
   return getUser()
       .then((response) => {
         const user = response.data || response;
+
         dispatch(receiveUser(user));
       })
       .catch((err) => {
