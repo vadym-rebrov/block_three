@@ -8,6 +8,7 @@ function Default() {
   return (
     <Typography>
       {formatMessage({ id: 'title' })}
+      <img src={'/logo512.png'}/>
     </Typography>
   );
 }
