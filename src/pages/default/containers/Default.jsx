@@ -11,6 +11,8 @@ const useStyles = createUseStyles({
         fontFamily:'monospace',
         whiteSpace: 'pre',
         fontSize:'12px',
+        position:'relative',
+        left:'16%'
     }
 });
 function Default() {
