@@ -98,7 +98,6 @@ function Header({
   const locationSearch = useLocationSearch();
   const user = useSelector(({ user: reducerUser }) => reducerUser);
   const userMenuRef = useRef(null);
-  console.log(user);
   const [state, setState] = useState({
     isLangsMenuOpened: false,
     isUserMenuOpened: false,

@@ -25,7 +25,6 @@ const fetchMovieSessions = ({ movieId }) => (dispatch) => {
     dispatch(requestMovieSessions());
     return axios.get(`${config.API_URL}/api/movie-session`, { params: { movieId } })
         .then((response) => {
-            console.log(response);
             dispatch(receiveMovieSessions(response));
         }).catch((error) => {
             dispatch(errorMovieSessions(error));
