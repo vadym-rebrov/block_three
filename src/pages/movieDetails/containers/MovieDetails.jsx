@@ -69,7 +69,7 @@ function MovieDetails({ isCreateMode = false }) {
     const [message, setMessage] = useState(null);
 
     const { movieSessions, isFetching: isSessionsFetching } = useSelector(
-        ({ movieSession }) => movieSession
+        ({ movieSessions }) => movieSessions
     );
 
     // Завантаження даних

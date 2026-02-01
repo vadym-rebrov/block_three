@@ -8,6 +8,7 @@ const initialState = {
     isFetching: false,
     errors: [],
     movieSessions: [],
+    totalElements: 0
 };
 
 export default function movieSessionReducer(state = initialState, action) {
@@ -24,7 +25,8 @@ export default function movieSessionReducer(state = initialState, action) {
             return {
                 ...state,
                 isFetching: false,
-                movieSessions: action.payload,
+                movieSessions: action.payload.list,
+                totalElements: action.payload.totalElements
             };
         }
 

@@ -23,15 +23,19 @@ const useStyles = createUseStyles((theme) => ({
     }
 }));
 
-const MovieSessionsTable = ({ sessionsList = [] }) => {
+const MovieSessionsTable = ({ sessions }) => {
     const classes = useStyles();
     const { formatMessage, formatDate, formatTime } = useIntl();
-    let sessions = Array.from(sessionsList.list);
+    console.log('Sessions: \n' + sessions);
     if (!sessions.length) {
         return (
-            <Typography className={classes.noData}>
-                {formatMessage({ id: 'noSessionsAvailable', defaultMessage: 'No sessions available' })}
-            </Typography>
+            <Card>
+                <CardContent>
+                    <Typography className={classes.noData}>
+                        {formatMessage({ id: 'noSessionsAvailable', defaultMessage: 'No sessions available' })}
+                    </Typography>
+                </CardContent>
+            </Card>
         );
     }
 
@@ -57,14 +61,14 @@ const MovieSessionsTable = ({ sessionsList = [] }) => {
                         <tr key={session.id}>
                             <td className={classes.td}>
                                 <Typography>
-                                    {formatDate(session.date)} {formatTime(session.date)}
+                                    {formatDate(session.start, {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: '2-digit'
+                                    })}
                                 </Typography>
                             </td>
-                            <td className={classes.td}>
-                                <Typography>
-                                    {formatDate(session.start)}
-                                </Typography>
-                            </td>
+
                             <td className={classes.td}>
                                 <Typography>
                                     {formatTime(session.start)} - {formatTime(session.end)}

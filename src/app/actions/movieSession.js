@@ -27,8 +27,7 @@ const fetchMovieSessions = ({ movieId }) => (dispatch) => {
         .then((response) => {
             console.log(response);
             dispatch(receiveMovieSessions(response));
-        })
-        .catch((error) => {
+        }).catch((error) => {
             dispatch(errorMovieSessions(error));
         });
 };
