@@ -23,10 +23,11 @@ const errorMovieSessions = (errors) => ({
 
 const fetchMovieSessions = ({ movieId }) => (dispatch) => {
     dispatch(requestMovieSessions());
-
-    return axios.get(`${config.API_URL}/movie-sessions`, { params: { movieId } })
+    return axios.get(`${config.API_URL}/api/movie-session`, { params: { movieId } })
         .then((response) => {
-            dispatch(receiveMovieSessions(response.data));
+            console.log(response);
+            const sessionsList = response.data;
+            dispatch(receiveMovieSessions(sessionsList));
         })
         .catch((error) => {
             dispatch(errorMovieSessions(error));

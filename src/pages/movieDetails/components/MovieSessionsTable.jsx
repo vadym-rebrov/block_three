@@ -9,19 +9,16 @@ const useStyles = createUseStyles((theme) => ({
     table: {
         width: '100%',
         borderCollapse: 'collapse',
-        marginTop: theme.spacing(2),
+        marginTop: '20px',
     },
     th: {
         textAlign: 'left',
-        padding: theme.spacing(1),
-        borderBottom: `1px solid ${theme.palette.grey[300]}`,
+        borderBottom: '1px solid #dfdfdf'
     },
     td: {
-        padding: theme.spacing(1),
-        borderBottom: `1px solid ${theme.palette.grey[200]}`,
+        borderBottom: '1px solid #dfdfdf'
     },
     noData: {
-        padding: theme.spacing(2),
         textAlign: 'center',
     }
 }));
