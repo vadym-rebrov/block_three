@@ -1,6 +1,6 @@
 import { createUseStyles } from 'react-jss';
 import React from 'react';
-import IconHome from '../icons/Home';
+import LogoCamera from '../icons/Logo';
 import useTheme from 'misc/hooks/useTheme';
 
 const getClasses = createUseStyles(theme => ({
@@ -40,12 +40,12 @@ function Logo({
   return (
     <div className={classes.container}>
       {!compact && (
-        <IconHome color="header"/>
+        <LogoCamera color='#d009'/>
       )}
       {!compact && (
         <div className={classes.label}>
           <strong>
-            UI app. Base
+            Prism Cinema
           </strong>
         </div>
       )}
