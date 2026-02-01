@@ -23,10 +23,10 @@ const useStyles = createUseStyles((theme) => ({
     }
 }));
 
-const MovieSessionsTable = ({ sessions = [] }) => {
+const MovieSessionsTable = ({ sessionsList = [] }) => {
     const classes = useStyles();
     const { formatMessage, formatDate, formatTime } = useIntl();
-
+    let sessions = Array.from(sessionsList.list);
     if (!sessions.length) {
         return (
             <Typography className={classes.noData}>
@@ -48,10 +48,7 @@ const MovieSessionsTable = ({ sessions = [] }) => {
                             <Typography variant="subtitle">Date</Typography>
                         </th>
                         <th className={classes.th}>
-                            <Typography variant="subtitle">Room</Typography>
-                        </th>
-                        <th className={classes.th}>
-                            <Typography variant="subtitle">Price</Typography>
+                            <Typography variant="subtitle">Time</Typography>
                         </th>
                     </tr>
                     </thead>
@@ -65,12 +62,12 @@ const MovieSessionsTable = ({ sessions = [] }) => {
                             </td>
                             <td className={classes.td}>
                                 <Typography>
-                                    {session.roomName}
+                                    {formatDate(session.start)}
                                 </Typography>
                             </td>
                             <td className={classes.td}>
                                 <Typography>
-                                    {session.price} UAH
+                                    {formatTime(session.start)} - {formatTime(session.end)}
                                 </Typography>
                             </td>
                         </tr>
