@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createUseStyles } from 'react-jss';
 import { useIntl } from 'react-intl';
 import actionsMovies from 'app/actions/movies';
+import movieSessionActions from 'app/actions/movieSession';
+import MovieSessionsTable from '../components/MovieSessionsTable';
 
 import Typography from 'components/Typography';
 import Loading from 'components/Loading';
@@ -66,6 +68,10 @@ function MovieDetails({ isCreateMode = false }) {
     const [isEditMode, setIsEditMode] = useState(isCreateMode);
     const [message, setMessage] = useState(null);
 
+    const { movieSessions, isFetching: isSessionsFetching } = useSelector(
+        ({ movieSession }) => movieSession
+    );
+
     // Завантаження даних
     useEffect(() => {
         if (id && !isCreateMode) {
@@ -79,6 +85,12 @@ function MovieDetails({ isCreateMode = false }) {
             setIsEditMode(true);
         }
     }, [isCreateMode]);
+
+    useEffect(() => {
+        if (id) {
+            dispatch(movieSessionActions.fetchMovieSessions({ movieId: id }));
+        }
+    }, [dispatch, id]);
 
     const handleSaveData = (formData) => {
         const dataToSend = {
@@ -181,6 +193,15 @@ function MovieDetails({ isCreateMode = false }) {
                     )}
                 </CardContent>
             </Card>
+            {!isCreateMode && (
+                <div style={{ marginTop: '10px' }}>
+                    {isSessionsFetching ? (
+                        <Loading />
+                    ) : (
+                        <MovieSessionsTable sessions={movieSessions} />
+                    )}
+                </div>
+            )}
         </div>
     );
 }

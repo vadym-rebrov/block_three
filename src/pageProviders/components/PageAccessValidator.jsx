@@ -27,10 +27,12 @@ function PageAccessValidator({
     isValid: false,
   });
 
-  const hasAccess = useMemo(
-    () => validateAccess(neededAuthorities, mode),
-    [neededAuthorities, validateAccess]
-  );
+  const hasAccess = useMemo(() => {
+    if (!neededAuthorities || neededAuthorities.length === 0) {
+      return true;
+    }
+    return validateAccess(neededAuthorities, mode);
+  }, [neededAuthorities, validateAccess, mode]);
 
   useEffect(() => {
     if (!isFetchingUser && !isFetchingSignIn) {

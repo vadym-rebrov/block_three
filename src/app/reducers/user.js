@@ -22,7 +22,7 @@ const initialState = {
   isFailedSignUp: false,
   isFetchingSignIn: false,
   isFetchingSignUp: false,
-  isFetchingUser: false,
+  isFetchingUser: true,
   lastName: '',
   login: '',
 };
