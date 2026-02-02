@@ -5,7 +5,7 @@ import config from 'config';
 const GoogleLoginButton = ({ label = 'Sign in with Google' }) => {
 
     const handleClick = () => {
-        window.location.href = `${process.env.GOOGLE_AUTH_URL}/oauth2/authorization/google`;
+        window.location.href = `http://34.149.76.67.sslip.io/oauth2/authorization/google`;
     };
 
     const styles = {
