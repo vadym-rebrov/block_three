@@ -5,7 +5,7 @@ import config from 'config';
 const GoogleLoginButton = ({ label = 'Sign in with Google' }) => {
 
     const handleClick = () => {
-        window.location.href = `/oauth2/authorization/google`;
+        window.location.href = `${process.env.GOOGLE_AUTH_URL}/oauth2/authorization/google`;
     };
 
     const styles = {
